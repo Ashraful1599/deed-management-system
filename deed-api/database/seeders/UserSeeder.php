@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Admin User',
                 'phone'    => '0000000000',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('12345678'),
                 'role'     => 'admin',
                 'status'   => 'active',
             ]
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'John User',
                 'phone'    => '1111111111',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('12345678'),
                 'role'     => 'user',
                 'status'   => 'active',
             ]

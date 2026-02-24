@@ -74,6 +74,29 @@ export default function LoginPage() {
             Register
           </Link>
         </p>
+
+        {/* Demo credentials */}
+        <div className="mt-6 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Demo Credentials</p>
+          <div className="space-y-2">
+            {[
+              { role: 'Admin', email: 'admin@deed.com' },
+              { role: 'User', email: 'user@deed.com' },
+              { role: 'Deed Writer', email: 'writer@deed.com' },
+            ].map(({ role, email }) => (
+              <button
+                key={email}
+                type="button"
+                onClick={() => { setLoginField(email); setPassword('12345678'); }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-white border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer group"
+              >
+                <span className="text-xs font-medium text-gray-700 group-hover:text-blue-700">{role}</span>
+                <span className="text-xs text-gray-400 group-hover:text-blue-500">{email}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-2 text-center">Password: <span className="font-mono font-semibold text-gray-600">12345678</span> · Click a row to fill in</p>
+        </div>
       </div>
     </div>
   );
