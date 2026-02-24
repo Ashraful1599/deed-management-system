@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
+// Email verification (signed URL from email link)
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+
 // SSE stream — auth via ?token= query param (EventSource cannot send headers)
 Route::get('/notifications/stream', [NotificationController::class, 'stream']);
 
@@ -21,6 +26,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',    [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+
+    // Email verification resend
+    Route::post('/email/verify/resend', [AuthController::class, 'resendVerification'])
+        ->middleware('throttle:6,1');
 
     // Dashboard
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);

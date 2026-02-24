@@ -10,39 +10,44 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $verified = now();
+
         // Admin
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@deed.com'],
             [
-                'name'     => 'Admin User',
-                'phone'    => '0000000000',
-                'password' => Hash::make('12345678'),
-                'role'     => 'admin',
-                'status'   => 'active',
+                'name'              => 'Admin User',
+                'phone'             => '0000000000',
+                'password'          => Hash::make('12345678'),
+                'role'              => 'admin',
+                'status'            => 'active',
+                'email_verified_at' => $verified,
             ]
         );
 
         // Sample User
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'user@deed.com'],
             [
-                'name'     => 'John User',
-                'phone'    => '1111111111',
-                'password' => Hash::make('12345678'),
-                'role'     => 'user',
-                'status'   => 'active',
+                'name'              => 'John User',
+                'phone'             => '1111111111',
+                'password'          => Hash::make('12345678'),
+                'role'              => 'user',
+                'status'            => 'active',
+                'email_verified_at' => $verified,
             ]
         );
 
         // Sample Deed Writer
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'writer@deed.com'],
             [
                 'name'                => 'Jane Writer',
                 'phone'               => '2222222222',
-                'password'            => Hash::make('password123'),
+                'password'            => Hash::make('12345678'),
                 'role'                => 'deed_writer',
                 'status'              => 'active',
+                'email_verified_at'   => $verified,
                 'registration_number' => 'DW-2024-001',
                 'office_name'         => 'City Law Office',
                 'district'            => 'Downtown',

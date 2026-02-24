@@ -1,16 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { register } from '@/lib/auth';
-import { useAppDispatch } from '@/lib/store/hooks';
-import { setUser } from '@/lib/store/slices/userSlice';
+import { register, resendVerificationEmail } from '@/lib/auth';
 import { toast } from 'react-toastify';
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -42,9 +40,9 @@ export default function RegisterPage() {
         payload.office_name = form.office_name;
         payload.district = form.district;
       }
-      const { user } = await register(payload);
-      dispatch(setUser(user));
-      router.push('/dashboard');
+      const { token: tok } = await register(payload);
+      setRegisteredEmail(form.email);
+      setToken(tok);
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
       if (errData?.errors) {
@@ -58,7 +56,53 @@ export default function RegisterPage() {
     }
   }
 
+  async function handleResend() {
+    if (!token) return;
+    setResending(true);
+    try {
+      await resendVerificationEmail(token);
+      toast.success('Verification email resent!');
+    } catch {
+      toast.error('Failed to resend. Please try again.');
+    } finally {
+      setResending(false);
+    }
+  }
+
   const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+  // Show verify email screen after registration
+  if (registeredEmail) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
+          <p className="text-sm text-gray-500 mb-1">
+            We sent a verification link to
+          </p>
+          <p className="text-sm font-semibold text-gray-800 mb-6">{registeredEmail}</p>
+          <p className="text-xs text-gray-400 mb-6">
+            Click the link in the email to verify your account, then sign in.
+          </p>
+          <button
+            onClick={handleResend}
+            disabled={resending}
+            className="w-full border border-gray-300 text-gray-700 py-2 rounded-md text-sm font-medium hover:bg-gray-50 disabled:opacity-50 mb-3"
+          >
+            {resending ? 'Sending...' : 'Resend verification email'}
+          </button>
+          <Link href="/login" className="block text-sm text-blue-600 hover:underline">
+            Back to Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -13,7 +13,7 @@ class CommentResource extends JsonResource {
             'attachment_mime' => $this->attachment_mime,
             'has_attachment'  => !is_null($this->attachment_path),
             'download_url'    => $this->attachment_path
-                ? route('comments.attachment', $this->id)
+                ? env('R2_PUBLIC_URL') . '/' . $this->attachment_path
                 : null,
             'created_at'      => $this->created_at,
         ];

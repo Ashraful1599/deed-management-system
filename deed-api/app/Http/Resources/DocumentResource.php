@@ -12,7 +12,7 @@ class DocumentResource extends JsonResource {
             'mime_type'         => $this->mime_type,
             'label'             => $this->label,
             'uploaded_by'       => $this->uploaded_by,
-            'download_url'      => route('documents.download', $this->id),
+            'download_url'      => env('R2_PUBLIC_URL') . '/' . $this->disk_path,
             'created_at'        => $this->created_at,
         ];
     }

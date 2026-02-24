@@ -34,6 +34,12 @@ export async function login(loginField: string, password: string): Promise<{ use
   return { user, token };
 }
 
+export async function resendVerificationEmail(token: string): Promise<void> {
+  await api.post('/email/verify/resend', {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export async function register(data: RegisterData): Promise<{ user: User; token: string }> {
   const res = await api.post('/register', data);
   const { user, token } = res.data;

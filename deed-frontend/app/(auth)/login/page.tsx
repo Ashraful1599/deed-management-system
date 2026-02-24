@@ -1,18 +1,28 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/auth';
+import api from '@/lib/api';
 import { useAppDispatch } from '@/lib/store/hooks';
 import { setUser } from '@/lib/store/slices/userSlice';
 import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const [loginField, setLoginField] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('verified') === '1') {
+      toast.success('Email verified! You can now sign in.');
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,10 +32,13 @@ export default function LoginPage() {
       dispatch(setUser(user));
       router.push('/dashboard');
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Login failed. Check your credentials.';
-      toast.error(message);
+      const res = (err as { response?: { data?: { message?: string; email_verified?: boolean; email?: string }; status?: number } })?.response;
+      if (res?.status === 403 && res?.data?.email_verified === false) {
+        setUnverifiedEmail(res.data?.email || loginField);
+      } else {
+        const message = res?.data?.message || 'Login failed. Check your credentials.';
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -74,6 +87,31 @@ export default function LoginPage() {
             Register
           </Link>
         </p>
+
+        {/* Unverified email notice */}
+        {unverifiedEmail && (
+          <div className="mt-4 border border-yellow-300 bg-yellow-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-yellow-800 mb-1">Email not verified</p>
+            <p className="text-xs text-yellow-700 mb-3">Please check your inbox for <span className="font-semibold">{unverifiedEmail}</span> and click the verification link.</p>
+            <button
+              onClick={async () => {
+                setResending(true);
+                try {
+                  await api.post('/email/verify/resend', {}, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('deed_token') ?? ''}` },
+                  });
+                  toast.success('Verification email resent!');
+                } catch {
+                  toast.error('Could not resend — please try registering again.');
+                } finally { setResending(false); }
+              }}
+              disabled={resending}
+              className="text-xs text-yellow-800 font-medium underline disabled:opacity-50 cursor-pointer"
+            >
+              {resending ? 'Sending...' : 'Resend verification email'}
+            </button>
+          </div>
+        )}
 
         {/* Demo credentials */}
         <div className="mt-6 border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">

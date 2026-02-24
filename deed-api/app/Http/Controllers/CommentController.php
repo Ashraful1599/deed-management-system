@@ -36,7 +36,7 @@ class CommentController extends Controller {
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
             $stored = Str::uuid() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('comments/' . $deed->id, $stored, 'public');
+            $path = $file->storeAs('comments/' . $deed->id, $stored, 'r2');
             $comment->attachment_path = $path;
             $comment->attachment_name = $file->getClientOriginalName();
             $comment->attachment_mime = $file->getMimeType();
@@ -71,7 +71,7 @@ class CommentController extends Controller {
             abort(403);
         }
         if ($comment->attachment_path) {
-            Storage::disk('public')->delete($comment->attachment_path);
+            Storage::disk('r2')->delete($comment->attachment_path);
         }
         $comment->delete();
         return response()->json(['message' => 'Comment deleted']);
@@ -80,9 +80,9 @@ class CommentController extends Controller {
     public function attachment(Request $request, Comment $comment) {
         $deed = $comment->deed;
         if (!$deed->canAccess($request->user())) { abort(403); }
-        if (!$comment->attachment_path || !Storage::disk('public')->exists($comment->attachment_path)) {
+        if (!$comment->attachment_path || !Storage::disk('r2')->exists($comment->attachment_path)) {
             abort(404);
         }
-        return Storage::disk('public')->download($comment->attachment_path, $comment->attachment_name);
+        return Storage::disk('r2')->download($comment->attachment_path, $comment->attachment_name);
     }
 }

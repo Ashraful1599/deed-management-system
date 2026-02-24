@@ -23,7 +23,7 @@ class DocumentController extends Controller {
 
         $file = $request->file('file');
         $storedName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('deeds/' . $deed->id, $storedName, 'public');
+        $path = $file->storeAs('deeds/' . $deed->id, $storedName, 'r2');
 
         $document = $deed->documents()->create([
             'uploaded_by'       => $request->user()->id,
@@ -57,7 +57,7 @@ class DocumentController extends Controller {
     public function destroy(Request $request, Document $document) {
         $deed = $document->deed;
         if (!$deed->canAccess($request->user())) { abort(403); }
-        Storage::disk('public')->delete($document->disk_path);
+        Storage::disk('r2')->delete($document->disk_path);
         $document->delete();
         return response()->json(['message' => 'Document deleted']);
     }
@@ -65,7 +65,7 @@ class DocumentController extends Controller {
     public function download(Request $request, Document $document) {
         $deed = $document->deed;
         if (!$deed->canAccess($request->user())) { abort(403); }
-        if (!Storage::disk('public')->exists($document->disk_path)) { abort(404); }
-        return Storage::disk('public')->download($document->disk_path, $document->original_filename);
+        if (!Storage::disk('r2')->exists($document->disk_path)) { abort(404); }
+        return Storage::disk('r2')->download($document->disk_path, $document->original_filename);
     }
 }
