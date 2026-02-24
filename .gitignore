@@ -1,0 +1,15 @@
+# Laravel API
+deed-api/vendor/
+deed-api/node_modules/
+deed-api/.env
+deed-api/storage/logs/*.log
+deed-api/storage/app/public/*
+deed-api/.phpunit.result.cache
+deed-api/bootstrap/cache/*.php
+
+# Next.js Frontend
+deed-frontend/node_modules/
+deed-frontend/.next/
+deed-frontend/.env
+deed-frontend/.env.local
+deed-frontend/tsconfig.tsbuildinfo
