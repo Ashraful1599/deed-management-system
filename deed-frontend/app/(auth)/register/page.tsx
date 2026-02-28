@@ -1,14 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { register, resendVerificationEmail } from '@/lib/auth';
 import { toast } from 'react-toastify';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+interface Division { id: number; name: string; }
+interface District { id: number; division_id: number; name: string; }
+interface Upazila  { id: number; district_id: number; name: string; }
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -17,11 +25,60 @@ export default function RegisterPage() {
     role: 'user' as 'user' | 'deed_writer',
     registration_number: '',
     office_name: '',
-    district: '',
+    division_id: null as number | null,
+    district_id: null as number | null,
+    upazila_id: null as number | null,
   });
 
-  function set(field: string, value: string) {
+  // Location data
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [upazilas, setUpazilas] = useState<Upazila[]>([]);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch divisions when deed_writer role selected
+  useEffect(() => {
+    if (form.role !== 'deed_writer' || divisions.length > 0) return;
+    fetch(`${API}/locations/divisions`)
+      .then((r) => r.json())
+      .then(setDivisions)
+      .catch(() => {});
+  }, [form.role]);
+
+  // Fetch districts when division changes
+  useEffect(() => {
+    setDistricts([]);
+    setUpazilas([]);
+    setForm((prev) => ({ ...prev, district_id: null, upazila_id: null }));
+    if (!form.division_id) return;
+    fetch(`${API}/locations/divisions/${form.division_id}/districts`)
+      .then((r) => r.json())
+      .then(setDistricts)
+      .catch(() => {});
+  }, [form.division_id]);
+
+  // Fetch upazilas when district changes
+  useEffect(() => {
+    setUpazilas([]);
+    setForm((prev) => ({ ...prev, upazila_id: null }));
+    if (!form.district_id) return;
+    fetch(`${API}/locations/districts/${form.district_id}/upazilas`)
+      .then((r) => r.json())
+      .then(setUpazilas)
+      .catch(() => {});
+  }, [form.district_id]);
+
+  function set(field: string, value: string | number | null) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    const url = URL.createObjectURL(file);
+    setAvatarPreview(url);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -34,11 +91,14 @@ export default function RegisterPage() {
         phone: form.phone,
         password: form.password,
         role: form.role,
+        avatarFile: avatarFile ?? undefined,
       };
       if (form.role === 'deed_writer') {
         payload.registration_number = form.registration_number;
         payload.office_name = form.office_name;
-        payload.district = form.district;
+        payload.division_id = form.division_id;
+        payload.district_id = form.district_id;
+        payload.upazila_id = form.upazila_id;
       }
       const { token: tok } = await register(payload);
       setRegisteredEmail(form.email);
@@ -70,6 +130,7 @@ export default function RegisterPage() {
   }
 
   const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const selectCls = 'w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
 
   // Show verify email screen after registration
   if (registeredEmail) {
@@ -109,6 +170,39 @@ export default function RegisterPage() {
       <div className="bg-white rounded-lg shadow p-8 w-full max-w-lg">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Account</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar picker */}
+          <div className="flex justify-center mb-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="w-20 h-20 rounded-full overflow-hidden bg-blue-100 border-2 border-dashed border-blue-300 flex items-center justify-center hover:bg-blue-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  </svg>
+                )}
+              </button>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </div>
+          </div>
+          <p className="text-center text-xs text-gray-400 -mt-2">Profile photo (optional)</p>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -155,11 +249,50 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Office Name</label>
-                <input type="text" value={form.office_name} onChange={(e) => set('office_name', e.target.value)} required className={inputCls} placeholder="e.g. Smith Legal Services" />
+                <input type="text" value={form.office_name} onChange={(e) => set('office_name', e.target.value)} required className={inputCls} placeholder="e.g. Dhaka Legal Services" />
+              </div>
+
+              <p className="text-sm font-medium text-blue-800 pt-1">Location</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                <select
+                  value={form.division_id ?? ''}
+                  onChange={(e) => set('division_id', e.target.value ? Number(e.target.value) : null)}
+                  className={selectCls}
+                >
+                  <option value="">Select Division</option>
+                  {divisions.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
-                <input type="text" value={form.district} onChange={(e) => set('district', e.target.value)} required className={inputCls} placeholder="e.g. Northern District" />
+                <select
+                  value={form.district_id ?? ''}
+                  onChange={(e) => set('district_id', e.target.value ? Number(e.target.value) : null)}
+                  disabled={!form.division_id || districts.length === 0}
+                  className={`${selectCls} disabled:bg-gray-100 disabled:text-gray-400`}
+                >
+                  <option value="">{form.division_id && districts.length === 0 ? 'Loading...' : 'Select District'}</option>
+                  {districts.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana</label>
+                <select
+                  value={form.upazila_id ?? ''}
+                  onChange={(e) => set('upazila_id', e.target.value ? Number(e.target.value) : null)}
+                  disabled={!form.district_id || upazilas.length === 0}
+                  className={`${selectCls} disabled:bg-gray-100 disabled:text-gray-400`}
+                >
+                  <option value="">{form.district_id && upazilas.length === 0 ? 'Loading...' : 'Select Upazila'}</option>
+                  {upazilas.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
@@ -167,7 +300,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
           >
             {loading ? 'Creating account...' : 'Create Account'}
           </button>

@@ -22,7 +22,11 @@ class RegisterRequest extends FormRequest
             // Deed Writer only fields
             'registration_number' => ['required_if:role,deed_writer', 'nullable', 'string'],
             'office_name'         => ['required_if:role,deed_writer', 'nullable', 'string'],
-            'district'            => ['required_if:role,deed_writer', 'nullable', 'string'],
+            'district'            => ['nullable', 'string'],
+            'division_id'         => ['nullable', 'integer', 'exists:bd_divisions,id'],
+            'district_id'         => ['nullable', 'integer', 'exists:bd_districts,id'],
+            'upazila_id'          => ['nullable', 'integer', 'exists:bd_upazilas,id'],
+            'avatar'              => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
         ];
     }
 }

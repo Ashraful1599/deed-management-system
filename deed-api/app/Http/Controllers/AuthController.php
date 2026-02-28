@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -26,7 +27,16 @@ class AuthController extends Controller
             'registration_number' => $data['registration_number'] ?? null,
             'office_name'         => $data['office_name'] ?? null,
             'district'            => $data['district'] ?? null,
+            'division_id'         => $data['division_id'] ?? null,
+            'district_id'         => $data['district_id'] ?? null,
+            'upazila_id'          => $data['upazila_id'] ?? null,
         ]);
+
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $path = $file->storeAs('avatars', Str::uuid().'.'.$file->getClientOriginalExtension(), 'r2');
+            $user->update(['avatar' => env('R2_PUBLIC_URL').'/'.$path]);
+        }
 
         // Send verification email
         $user->sendEmailVerificationNotification();
@@ -104,15 +114,39 @@ class AuthController extends Controller
         return response()->json(['message' => 'Verification email sent. Please check your inbox.']);
     }
 
+    // POST /api/email/verify/resend-by-email  (public — for users who lost their session)
+    public function resendByEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)->first();
+
+        if ($user && !$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        // Always return success to avoid email enumeration
+        return response()->json(['message' => 'If that email is registered and unverified, a new link has been sent.']);
+    }
+
     public function user(Request $request)
     {
-        return new UserResource($request->user());
+        return new UserResource($request->user()->load(['divisionRel', 'districtRel', 'upazila']));
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out']);
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate(['avatar' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:2048']);
+        $user = $request->user();
+        $file = $request->file('avatar');
+        $path = $file->storeAs('avatars', Str::uuid().'.'.$file->getClientOriginalExtension(), 'r2');
+        $user->update(['avatar' => env('R2_PUBLIC_URL').'/'.$path]);
+        return new UserResource($user->fresh());
     }
 
     public function updateProfile(Request $request)
@@ -124,6 +158,9 @@ class AuthController extends Controller
             'password'     => ['sometimes', 'string', 'min:8'],
             'office_name'  => ['nullable', 'string'],
             'district'     => ['nullable', 'string'],
+            'division_id'  => ['nullable', 'integer', 'exists:bd_divisions,id'],
+            'district_id'  => ['nullable', 'integer', 'exists:bd_districts,id'],
+            'upazila_id'   => ['nullable', 'integer', 'exists:bd_upazilas,id'],
             'avatar'       => ['nullable', 'string'],
         ]);
 
@@ -132,6 +169,6 @@ class AuthController extends Controller
         }
 
         $request->user()->update($data);
-        return new UserResource($request->user()->fresh());
+        return new UserResource($request->user()->fresh()->load(['divisionRel', 'districtRel', 'upazila']));
     }
 }

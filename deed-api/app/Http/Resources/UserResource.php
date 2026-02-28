@@ -19,8 +19,17 @@ class UserResource extends JsonResource
             'registration_number' => $this->registration_number,
             'office_name'         => $this->office_name,
             'district'            => $this->district,
+            'division_id'         => $this->division_id,
+            'division_name'       => $this->divisionRel?->name,
+            'district_id'         => $this->district_id,
+            'upazila_id'          => $this->upazila_id,
+            'district_name'       => $this->districtRel?->name,
+            'upazila_name'        => $this->upazila?->name,
             'avatar'              => $this->avatar,
+            'phone_verified_at'   => $this->phone_verified_at,
             'created_at'          => $this->created_at,
+            'reviews_avg_rating'  => $this->whenNotNull($this->received_reviews_avg_rating),
+            'reviews_count'       => $this->whenNotNull($this->received_reviews_count),
         ];
     }
 }
