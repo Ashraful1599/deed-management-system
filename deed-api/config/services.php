@@ -28,10 +28,9 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
-    'twilio' => [
-        'sid'   => env('TWILIO_SID'),
-        'token' => env('TWILIO_TOKEN'),
-        'from'  => env('TWILIO_FROM'),
+    'bulksmsbd' => [
+        'api_key'   => env('BULKSMSBD_API_KEY'),
+        'sender_id' => env('BULKSMSBD_SENDER_ID', 'DeedMgr'),
     ],
 
     'slack' => [

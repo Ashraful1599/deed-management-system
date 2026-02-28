@@ -1,37 +1,59 @@
 <?php
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Twilio\Rest\Client;
 
 class SmsService
 {
     /**
-     * Send an SMS message via Twilio. Returns true on success.
-     * Falls back to logging if credentials are not configured (local dev).
+     * Normalize a Bangladeshi phone number to the 880XXXXXXXXXX format.
+     * Accepts: 01XXXXXXXXX, 8801XXXXXXXXX, +8801XXXXXXXXX
+     */
+    private function normalize(string $phone): string
+    {
+        $phone = preg_replace('/\D/', '', $phone); // strip non-digits
+        if (str_starts_with($phone, '880')) return $phone;
+        if (str_starts_with($phone, '0'))   return '88' . $phone;
+        return '880' . $phone;
+    }
+
+    /**
+     * Send an SMS message. Returns true on success.
+     * Falls back to logging if API key is not configured (local dev).
      */
     public function send(string $phone, string $message): bool
     {
-        $sid   = config('services.twilio.sid');
-        $token = config('services.twilio.token');
-        $from  = config('services.twilio.from');
+        $apiKey   = config('services.bulksmsbd.api_key');
+        $senderId = config('services.bulksmsbd.sender_id');
 
-        if (!$sid || !$token || !$from) {
+        if (!$apiKey) {
             // Dev mode: log the OTP instead of sending
             Log::info('[SmsService DEV] SMS to ' . $phone . ': ' . $message);
             return true;
         }
 
-        try {
-            $client = new Client($sid, $token);
-            $client->messages->create($phone, [
-                'from' => $from,
-                'body' => $message,
-            ]);
-            return true;
-        } catch (\Exception $e) {
-            Log::error('[SmsService] Twilio error: ' . $e->getMessage());
+        $number = $this->normalize($phone);
+
+        $response = Http::timeout(10)->get('http://bulksmsbd.net/api/smsapi', [
+            'api_key'  => $apiKey,
+            'senderid' => $senderId ?? '',
+            'number'   => $number,
+            'message'  => $message,
+            'type'     => 'text',
+        ]);
+
+        if (!$response->successful()) {
+            Log::error('[SmsService] HTTP error: ' . $response->status());
             return false;
         }
+
+        $code = $response->json('response_code');
+        if ($code != 202) {
+            Log::error('[SmsService] API error code=' . $code . ' body=' . $response->body() . ' number=' . $number);
+            return false;
+        }
+
+        return true;
     }
 }
