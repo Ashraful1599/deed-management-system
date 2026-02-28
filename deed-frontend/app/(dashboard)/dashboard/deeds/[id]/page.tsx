@@ -260,7 +260,7 @@ export default function DeedDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="mb-1">
-            <Link href="/deeds" className="text-gray-500 hover:text-gray-700 text-sm cursor-pointer">← Deeds</Link>
+            <Link href="/dashboard/deeds" className="text-gray-500 hover:text-gray-700 text-sm cursor-pointer">← Deeds</Link>
           </div>
           <h2 className="text-2xl font-bold text-gray-900">{deed.title}</h2>
           {deed.description && <p className="text-gray-500 mt-1">{deed.description}</p>}
@@ -269,7 +269,7 @@ export default function DeedDetailPage() {
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[deed.status] ?? 'bg-gray-100 text-gray-700'}`}>
             {statusLabels[deed.status] ?? deed.status}
           </span>
-          <Link href={`/deeds/${id}/edit`} className="border border-gray-300 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 cursor-pointer transition-colors">
+          <Link href={`/dashboard/deeds/${id}/edit`} className="border border-gray-300 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 cursor-pointer transition-colors">
             Edit
           </Link>
         </div>

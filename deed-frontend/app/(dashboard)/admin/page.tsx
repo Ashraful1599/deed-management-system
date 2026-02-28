@@ -222,7 +222,7 @@ export default function AdminPage() {
             {stats.recent_deeds.map((d) => (
               <div key={d.id} className="px-6 py-3 flex items-center justify-between">
                 <div>
-                  <Link href={`/deeds/${d.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                  <Link href={`/dashboard/deeds/${d.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
                     {d.title}
                   </Link>
                   <p className="text-xs text-gray-400 mt-0.5">

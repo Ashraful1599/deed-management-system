@@ -75,7 +75,7 @@ export default function EditDeedPage() {
         currentUser?.role === 'admin' ||
         updated?.created_by?.id === currentUser?.id ||
         updated?.assigned_to?.id === currentUser?.id;
-      router.push(stillHasAccess ? `/deeds/${id}` : '/deeds');
+      router.push(stillHasAccess ? `/dashboard/deeds/${id}` : '/dashboard/deeds');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || 'Update failed');
@@ -89,7 +89,7 @@ export default function EditDeedPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href={`/deeds/${id}`} className="text-gray-500 hover:text-gray-700 text-sm cursor-pointer">← Deed</Link>
+        <Link href={`/dashboard/deeds/${id}`} className="text-gray-500 hover:text-gray-700 text-sm cursor-pointer">← Deed</Link>
         <h2 className="text-2xl font-bold text-gray-900">Edit Deed</h2>
       </div>
 
@@ -164,7 +164,7 @@ export default function EditDeedPage() {
             className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition-colors text-sm">
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          <Link href={`/deeds/${id}`} className="border border-gray-300 px-6 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+          <Link href={`/dashboard/deeds/${id}`} className="border border-gray-300 px-6 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
             Cancel
           </Link>
         </div>

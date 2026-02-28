@@ -163,7 +163,7 @@ export default function AdminDeedsPage() {
                     {d.deed_number ?? <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3">
-                    <Link href={`/deeds/${d.id}`} className="font-medium text-gray-900 hover:text-blue-600">
+                    <Link href={`/dashboard/deeds/${d.id}`} className="font-medium text-gray-900 hover:text-blue-600">
                       {d.title}
                     </Link>
                   </td>
@@ -181,8 +181,8 @@ export default function AdminDeedsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 text-xs">
-                      <Link href={`/deeds/${d.id}`} className="text-blue-600 hover:underline">View</Link>
-                      <Link href={`/deeds/${d.id}/edit`} className="text-gray-600 hover:underline">Edit</Link>
+                      <Link href={`/dashboard/deeds/${d.id}`} className="text-blue-600 hover:underline">View</Link>
+                      <Link href={`/dashboard/deeds/${d.id}/edit`} className="text-gray-600 hover:underline">Edit</Link>
                       <button onClick={() => handleDelete(d.id)} className="text-red-600 hover:underline">Delete</button>
                     </div>
                   </td>

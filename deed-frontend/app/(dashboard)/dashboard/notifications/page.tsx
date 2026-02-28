@@ -91,7 +91,7 @@ export default function NotificationsPage() {
                 </div>
                 <p className="text-sm text-gray-900">{n.data.message}</p>
                 {n.data.deed_id && (
-                  <Link href={`/deeds/${n.data.deed_id}`} className="text-xs text-blue-600 hover:underline mt-0.5 block">
+                  <Link href={`/dashboard/deeds/${n.data.deed_id}`} className="text-xs text-blue-600 hover:underline mt-0.5 block">
                     View deed: {n.data.deed_title}
                   </Link>
                 )}

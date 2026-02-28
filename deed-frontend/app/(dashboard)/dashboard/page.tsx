@@ -60,7 +60,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-        <Link href="/deeds/create" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+        <Link href="/dashboard/deeds/create" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
           + New Deed
         </Link>
       </div>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">Recent Deeds</h3>
-          <Link href="/deeds" className="text-sm text-blue-600 hover:underline">View all</Link>
+          <Link href="/dashboard/deeds" className="text-sm text-blue-600 hover:underline">View all</Link>
         </div>
         <div className="divide-y divide-gray-100">
           {stats.recent_deeds.length === 0 && (
@@ -121,7 +121,7 @@ export default function DashboardPage() {
           {stats.recent_deeds.map((deed) => (
             <div key={deed.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
               <div>
-                <Link href={`/deeds/${deed.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                <Link href={`/dashboard/deeds/${deed.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
                   {deed.title}
                 </Link>
                 <p className="text-xs text-gray-500 mt-0.5">
