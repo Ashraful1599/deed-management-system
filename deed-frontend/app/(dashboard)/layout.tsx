@@ -29,7 +29,7 @@ const adminNavItems: NavItem[] = [
   { href: '/admin', label: 'Admin Dashboard', icon: <IconShield /> },
   { href: '/admin/users', label: 'Manage Users', icon: <IconUsers /> },
   { href: '/admin/deeds', label: 'Manage Deeds', icon: <IconDocument /> },
-  { href: '/notifications', label: 'Notifications', icon: <IconBell /> },
+  { href: '/admin/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
 
 const typeLabels: Record<string, string> = {
@@ -194,7 +194,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {visibleNav.map((item) => {
-            const active = pathname === item.href || (item.href !== '/dashboard' && item.href !== '/admin' && pathname.startsWith(item.href));
+            const exact = ['/dashboard', '/admin'];
+            const active = pathname === item.href || (!exact.includes(item.href) && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
@@ -293,7 +294,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 <div className="border-t border-gray-100 px-4 py-2.5">
                   <Link
-                    href="/notifications"
+                    href={user?.role === 'admin' ? '/admin/notifications' : '/notifications'}
                     onClick={() => setNotifOpen(false)}
                     className="block text-center text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
                   >
