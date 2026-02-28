@@ -11,6 +11,15 @@ const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm 
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
+// Valid BD mobile: 01[3-9]XXXXXXXX (11 digits)
+function validateBdPhone(local: string): string {
+  if (!local) return '';
+  if (!/^\d+$/.test(local)) return 'Only digits are allowed.';
+  if (local.length !== 11) return 'Phone number must be 11 digits (e.g. 01XXXXXXXXX).';
+  if (!/^01[3-9]\d{8}$/.test(local)) return 'Enter a valid Bangladeshi mobile number (e.g. 017XXXXXXXX).';
+  return '';
+}
+
 interface Division { id: number; name: string; }
 interface District { id: number; division_id: number; name: string; }
 interface Upazila  { id: number; district_id: number; name: string; }
@@ -143,7 +152,7 @@ function PhoneVerification({ phone, verifiedAt, onVerified }: {
 
       {step === 'idle' && (
         <button onClick={handleSend}
-          className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+          className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
           Send OTP
         </button>
       )}
@@ -206,6 +215,7 @@ export default function ProfilePage() {
     upazila_id: null as number | null,
   });
   const [savingProfile, setSavingProfile] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
 
   // Password form
   const [passwords, setPasswords] = useState({ password: '', confirm: '' });
@@ -304,6 +314,11 @@ export default function ProfilePage() {
 
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
+    const localPhone = profile.phone.replace(/^\+88/, '');
+    if (localPhone) {
+      const err = validateBdPhone(localPhone);
+      if (err) { setPhoneError(err); return; }
+    }
     setSavingProfile(true);
     try {
       const payload: Record<string, string | number | null> = {
@@ -423,7 +438,23 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className={labelCls}>Phone</label>
-              <input type="tel" value={profile.phone} onChange={(e) => setP('phone', e.target.value)} className={inputCls} placeholder="+1234567890" />
+              <div className="flex">
+                <span className="inline-flex items-center px-3 py-2.5 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 text-gray-500 text-sm select-none">+88</span>
+                <input
+                  type="tel"
+                  value={profile.phone.replace(/^\+88/, '')}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    setP('phone', '+88' + digits);
+                    setPhoneError(validateBdPhone(digits));
+                  }}
+                  onBlur={(e) => setPhoneError(validateBdPhone(e.target.value.replace(/\D/g, '')))}
+                  className={`${inputCls} rounded-l-none ${phoneError ? 'border-red-400 focus:ring-red-400' : ''}`}
+                  placeholder="01XXXXXXXXX"
+                  maxLength={11}
+                />
+              </div>
+              {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
             </div>
           </div>
           <div>

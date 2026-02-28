@@ -35,13 +35,18 @@ class SmsService
 
         $number = $this->normalize($phone);
 
-        $response = Http::timeout(10)->get('http://bulksmsbd.net/api/smsapi', [
-            'api_key'  => $apiKey,
-            'senderid' => $senderId ?? '',
-            'number'   => $number,
-            'message'  => $message,
-            'type'     => 'text',
-        ]);
+        $params = [
+            'api_key' => $apiKey,
+            'number'  => $number,
+            'message' => $message,
+            'type'    => 'text',
+        ];
+
+        if ($senderId) {
+            $params['senderid'] = $senderId;
+        }
+
+        $response = Http::timeout(10)->get('http://bulksmsbd.net/api/smsapi', $params);
 
         if (!$response->successful()) {
             Log::error('[SmsService] HTTP error: ' . $response->status());

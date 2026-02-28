@@ -69,9 +69,10 @@ class AuthController extends Controller
             ]);
         }
 
-        if (!$user->hasVerifiedEmail()) {
+        // Allow login if either email or phone is verified
+        if (!$user->hasVerifiedEmail() && !$user->phone_verified_at) {
             return response()->json([
-                'message'        => 'Please verify your email address before logging in.',
+                'message'        => 'Please verify your email address or phone number before logging in.',
                 'email_verified' => false,
                 'email'          => $user->email,
             ], 403);
@@ -166,6 +167,11 @@ class AuthController extends Controller
 
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
+        }
+
+        // If phone number changed, reset phone verification
+        if (isset($data['phone']) && $data['phone'] !== $request->user()->phone) {
+            $data['phone_verified_at'] = null;
         }
 
         $request->user()->update($data);

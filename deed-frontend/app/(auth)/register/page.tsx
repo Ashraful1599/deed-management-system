@@ -6,21 +6,32 @@ import { toast } from 'react-toastify';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
+// Valid BD mobile: 01[3-9]XXXXXXXX (11 digits)
+function validateBdPhone(local: string): string {
+  if (!local) return 'Phone number is required.';
+  if (!/^\d+$/.test(local)) return 'Only digits are allowed.';
+  if (local.length !== 11) return 'Phone number must be 11 digits (e.g. 01XXXXXXXXX).';
+  if (!/^01[3-9]\d{8}$/.test(local)) return 'Enter a valid Bangladeshi mobile number (e.g. 017XXXXXXXX).';
+  return '';
+}
+
 interface Division { id: number; name: string; }
 interface District { id: number; division_id: number; name: string; }
 interface Upazila  { id: number; district_id: number; name: string; }
 
 export default function RegisterPage() {
+  const [step, setStep] = useState<'form' | 'phone-otp' | 'phone-verified' | 'email-check'>('form');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [registeredPhone, setRegisteredPhone] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
-    phone: '',
+    phone: '+88',
     password: '',
     role: 'user' as 'user' | 'deed_writer',
     registration_number: '',
@@ -29,6 +40,13 @@ export default function RegisterPage() {
     district_id: null as number | null,
     upazila_id: null as number | null,
   });
+
+  const [phoneError, setPhoneError] = useState('');
+
+  // Phone OTP state
+  const [otp, setOtp] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
 
   // Location data
   const [divisions, setDivisions] = useState<Division[]>([]);
@@ -81,8 +99,22 @@ export default function RegisterPage() {
     setAvatarPreview(url);
   }
 
+  async function sendOtp(tok: string) {
+    setOtpSending(true);
+    try {
+      await fetch(`${API}/phone/send-otp`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${tok}`, 'Accept': 'application/json' },
+      });
+    } catch {}
+    setOtpSending(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const localPhone = form.phone.replace(/^\+88/, '');
+    const err = validateBdPhone(localPhone);
+    if (err) { setPhoneError(err); return; }
     setLoading(true);
     try {
       const payload: Parameters<typeof register>[0] = {
@@ -101,8 +133,11 @@ export default function RegisterPage() {
         payload.upazila_id = form.upazila_id;
       }
       const { token: tok } = await register(payload);
-      setRegisteredEmail(form.email);
       setToken(tok);
+      setRegisteredEmail(form.email);
+      setRegisteredPhone(form.phone);
+      setStep('phone-otp');
+      await sendOtp(tok);
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
       if (errData?.errors) {
@@ -113,6 +148,33 @@ export default function RegisterPage() {
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    setOtpVerifying(true);
+    try {
+      const res = await fetch(`${API}/phone/verify`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ code: otp }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.message || 'Invalid OTP');
+      } else {
+        setStep('phone-verified');
+      }
+    } catch {
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setOtpVerifying(false);
     }
   }
 
@@ -132,8 +194,91 @@ export default function RegisterPage() {
   const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
   const selectCls = 'w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
 
-  // Show verify email screen after registration
-  if (registeredEmail) {
+  // Phone verified — can sign in directly
+  if (step === 'phone-verified') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Phone Verified!</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Your phone number has been verified. You can sign in now.
+            You can also verify your email from your profile settings.
+          </p>
+          <Link href="/login" className="block w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 text-center mb-3">
+            Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Phone OTP verification step
+  if (step === 'phone-otp') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Verify your phone</h2>
+          <p className="text-sm text-gray-500 mb-1">We sent a 6-digit OTP to</p>
+          <p className="text-sm font-semibold text-gray-800 mb-6">{registeredPhone}</p>
+
+          {otpSending ? (
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              Sending OTP…
+            </div>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                className="w-40 mx-auto block border border-gray-300 rounded-lg px-3 py-2.5 text-center text-xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={otp.length !== 6 || otpVerifying}
+                className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+              >
+                {otpVerifying ? 'Verifying…' : 'Verify Phone'}
+              </button>
+              <button
+                type="button"
+                onClick={() => token && sendOtp(token)}
+                className="w-full border border-gray-300 text-gray-700 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+              >
+                Resend OTP
+              </button>
+            </form>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setStep('email-check')}
+            className="mt-4 text-sm text-gray-400 hover:text-gray-600"
+          >
+            Skip for now →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Email check step
+  if (step === 'email-check') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
@@ -143,9 +288,7 @@ export default function RegisterPage() {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
-          <p className="text-sm text-gray-500 mb-1">
-            We sent a verification link to
-          </p>
+          <p className="text-sm text-gray-500 mb-1">We sent a verification link to</p>
           <p className="text-sm font-semibold text-gray-800 mb-6">{registeredEmail}</p>
           <p className="text-xs text-gray-400 mb-6">
             Click the link in the email to verify your account, then sign in.
@@ -210,7 +353,24 @@ export default function RegisterPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} required placeholder="+1234567890" className={inputCls} />
+              <div className="flex">
+                <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-gray-500 text-sm select-none">+88</span>
+                <input
+                  type="tel"
+                  value={form.phone.replace(/^\+88/, '')}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+                    set('phone', '+88' + digits);
+                    setPhoneError(validateBdPhone(digits));
+                  }}
+                  onBlur={(e) => setPhoneError(validateBdPhone(e.target.value.replace(/\D/g, '')))}
+                  required
+                  placeholder="01XXXXXXXXX"
+                  maxLength={11}
+                  className={`${inputCls} rounded-l-none ${phoneError ? 'border-red-400 focus:ring-red-400' : ''}`}
+                />
+              </div>
+              {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
             </div>
           </div>
           <div>
