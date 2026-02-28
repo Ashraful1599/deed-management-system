@@ -46,11 +46,31 @@ class AdminController extends Controller {
 
     public function stats() {
         return response()->json([
-            'users_total'        => User::count(),
-            'users_by_role'      => User::selectRaw('role, count(*) as count')->groupBy('role')->pluck('count', 'role'),
-            'users_by_status'    => User::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
-            'deeds_total'        => Deed::count(),
-            'deeds_by_status'    => Deed::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
+            'users_total'         => User::count(),
+            'users_by_role'       => User::selectRaw('role, count(*) as count')->groupBy('role')->pluck('count', 'role'),
+            'users_by_status'     => User::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
+            'users_new_today'     => User::whereDate('created_at', today())->count(),
+            'users_new_this_week' => User::where('created_at', '>=', now()->startOfWeek())->count(),
+            'deeds_total'         => Deed::count(),
+            'deeds_by_status'     => Deed::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
+            'deeds_new_today'     => Deed::whereDate('created_at', today())->count(),
+            'deeds_new_this_week' => Deed::where('created_at', '>=', now()->startOfWeek())->count(),
+            'recent_users'        => User::orderByDesc('created_at')->limit(6)->get()->map(fn($u) => [
+                'id'         => $u->id,
+                'name'       => $u->name,
+                'email'      => $u->email,
+                'role'       => $u->role,
+                'status'     => $u->status,
+                'created_at' => $u->created_at,
+            ]),
+            'recent_deeds'        => Deed::with(['creator', 'assignee'])->orderByDesc('created_at')->limit(6)->get()->map(fn($d) => [
+                'id'          => $d->id,
+                'title'       => $d->title,
+                'status'      => $d->status,
+                'created_by'  => $d->creator?->name,
+                'assigned_to' => $d->assignee?->name,
+                'created_at'  => $d->created_at,
+            ]),
         ]);
     }
 }
