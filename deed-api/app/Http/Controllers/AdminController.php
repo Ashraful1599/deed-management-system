@@ -29,9 +29,19 @@ class AdminController extends Controller {
 
     public function deeds(Request $request) {
         $query = Deed::with(['creator', 'assignee'])->withCount(['comments', 'documents']);
-        if ($request->filled('status')) { $query->where('status', $request->status); }
-        if ($request->filled('search')) { $query->where('title', 'like', '%' . $request->search . '%'); }
-        return DeedResource::collection($query->orderByDesc('created_at')->paginate(20));
+        if ($request->filled('status'))    { $query->where('status', $request->status); }
+        if ($request->filled('date_from')) { $query->whereDate('created_at', '>=', $request->date_from); }
+        if ($request->filled('date_to'))   { $query->whereDate('created_at', '<=', $request->date_to); }
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', $term)
+                  ->orWhere('deed_number', 'like', $term)
+                  ->orWhereHas('creator',  fn($u) => $u->where('name', 'like', $term)->orWhere('email', 'like', $term))
+                  ->orWhereHas('assignee', fn($u) => $u->where('name', 'like', $term)->orWhere('email', 'like', $term));
+            });
+        }
+        return DeedResource::collection($query->orderByDesc('created_at')->paginate(50));
     }
 
     public function stats() {

@@ -49,9 +49,12 @@ export default function AdminPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard title="Total Deeds" value={stats.deeds_total} icon={<IconDocument />} color="blue" />
           <StatCard title="Draft" value={stats.deeds_by_status?.draft ?? 0} icon={<IconDocument />} color="gray" />
-          <StatCard title="Pending" value={stats.deeds_by_status?.pending ?? 0} icon={<IconDocument />} color="yellow" />
-          <StatCard title="Recorded" value={stats.deeds_by_status?.recorded ?? 0} icon={<IconDocument />} color="green" />
+          <StatCard title="Under Review" value={stats.deeds_by_status?.under_review ?? 0} icon={<IconDocument />} color="yellow" />
+          <StatCard title="Archived" value={stats.deeds_by_status?.archived ?? 0} icon={<IconDocument />} color="green" />
         </div>
+        <Link href="/admin/deeds" className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline mt-3">
+          Manage Deeds →
+        </Link>
       </div>
     </div>
   );

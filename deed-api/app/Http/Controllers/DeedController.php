@@ -11,7 +11,8 @@ class DeedController extends Controller {
     public function index(Request $request) {
         $user = $request->user();
         $query = Deed::with(['creator', 'assignee'])
-            ->withCount(['comments', 'documents']);
+            ->withCount(['comments', 'documents', 'reviews'])
+            ->withAvg('reviews', 'rating');
 
         if (!$user->isAdmin()) {
             $query->where(function ($q) use ($user) {
@@ -23,13 +24,53 @@ class DeedController extends Controller {
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+        if ($request->filled('date_from')) {
+            $query->whereDate('deeds.created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('deeds.created_at', '<=', $request->date_to);
         }
 
-        return DeedResource::collection(
-            $query->orderByDesc('created_at')->paginate(20)
-        );
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $isNumeric = is_numeric(trim($request->search));
+            $query->where(function ($q) use ($term, $isNumeric, $request) {
+                $q->where('title', 'like', $term)
+                  ->orWhere('deed_number', 'like', $term)
+                  ->orWhere('description', 'like', $term)
+                  ->orWhereHas('creator', function ($u) use ($term) {
+                      $u->where('name', 'like', $term)
+                        ->orWhere('email', 'like', $term)
+                        ->orWhere('phone', 'like', $term);
+                  })
+                  ->orWhereHas('assignee', function ($u) use ($term) {
+                      $u->where('name', 'like', $term)
+                        ->orWhere('email', 'like', $term)
+                        ->orWhere('phone', 'like', $term);
+                  });
+                if ($isNumeric) {
+                    $q->orWhere('id', (int) trim($request->search));
+                }
+            });
+        }
+
+        $allowed  = ['id', 'deed_number', 'title', 'status', 'created_at', 'creator', 'assignee'];
+        $sortBy   = in_array($request->sort_by, $allowed) ? $request->sort_by : 'created_at';
+        $sortDir  = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
+        if ($sortBy === 'creator') {
+            $query->leftJoin('users as creators', 'creators.id', '=', 'deeds.created_by')
+                  ->select('deeds.*')
+                  ->orderBy('creators.name', $sortDir);
+        } elseif ($sortBy === 'assignee') {
+            $query->leftJoin('users as assignees', 'assignees.id', '=', 'deeds.assigned_to')
+                  ->select('deeds.*')
+                  ->orderBy('assignees.name', $sortDir);
+        } else {
+            $query->orderBy('deeds.' . $sortBy, $sortDir);
+        }
+
+        return DeedResource::collection($query->paginate(20));
     }
 
     public function store(StoreDeedRequest $request) {
@@ -82,6 +123,15 @@ class DeedController extends Controller {
     public function update(UpdateDeedRequest $request, Deed $deed) {
         $this->authorizeAccess($deed, $request->user());
         $validated = $request->validated();
+
+        // Enforce role-based status transitions
+        if (isset($validated['status']) && $validated['status'] !== $deed->status) {
+            $allowed = $deed->allowedTransitions($request->user());
+            if (!in_array($validated['status'], $allowed)) {
+                return response()->json(['message' => 'This status transition is not allowed.'], 403);
+            }
+        }
+
         // Save originals before update (getOriginal() returns new values after save)
         $oldStatus   = $deed->status;
         $oldAssignee = $deed->assigned_to;

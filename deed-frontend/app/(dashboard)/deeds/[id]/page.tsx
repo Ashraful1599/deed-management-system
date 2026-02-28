@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -20,6 +20,14 @@ interface Comment {
   download_url: string | null;
   created_at: string;
 }
+interface Review {
+  id: number;
+  reviewer: User;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+}
 interface Deed {
   id: number;
   title: string;
@@ -34,16 +42,70 @@ interface Deed {
 }
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700',
-  pending: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-blue-100 text-blue-800',
-  recorded: 'bg-green-100 text-green-800',
+  draft:        'bg-gray-100 text-gray-700',
+  under_review: 'bg-yellow-100 text-yellow-800',
+  completed:    'bg-blue-100 text-blue-800',
+  archived:     'bg-green-100 text-green-800',
 };
 
-const STATUSES = ['draft', 'pending', 'completed', 'recorded'];
+const statusLabels: Record<string, string> = {
+  draft:        'Draft',
+  under_review: 'Under Review',
+  completed:    'Completed',
+  archived:     'Archived',
+};
+
+const TRANSITIONS: Record<string, string[]> = {
+  draft:        ['under_review'],
+  under_review: ['completed', 'draft'],
+  completed:    ['archived'],
+  archived:     ['completed'],
+};
+
+function getAllowedTransitions(status: string, user: { id: number; role: string } | null, deed: { created_by?: { id: number } | null; assigned_to?: { id: number } | null } | null): string[] {
+  if (!user || !deed) return [];
+  const all = TRANSITIONS[status] ?? [];
+  if (user.role === 'admin') return all;
+  if (deed.assigned_to?.id === user.id) return all.filter(s => s === 'completed');
+  if (deed.created_by?.id  === user.id) return all.filter(s => s === 'under_review');
+  return [];
+}
+
+function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onMouseEnter={() => setHovered(n)}
+          onMouseLeave={() => setHovered(0)}
+          onClick={() => onChange(n)}
+          className={`text-2xl leading-none cursor-pointer transition-colors ${n <= (hovered || value) ? 'text-yellow-400' : 'text-gray-300'}`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function StarDisplay({ rating }: { rating: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span key={n} className={`text-base ${n <= rating ? 'text-yellow-400' : 'text-gray-200'}`}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function DeedDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const currentUser = useAppSelector((s) => s.user.currentUser);
   const [deed, setDeed] = useState<Deed | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -53,9 +115,23 @@ export default function DeedDetailPage() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
 
-  const canChangeStatus =
-    currentUser && deed &&
-    (currentUser.role === 'admin' || currentUser.id === deed.assigned_to?.id);
+  // Review state
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewBody, setReviewBody] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+
+  const allowedTransitions = getAllowedTransitions(deed?.status ?? '', currentUser, deed);
+  const canChangeStatus = allowedTransitions.length > 0;
+
+  const isCompletedOrRecorded = deed && ['completed', 'archived'].includes(deed.status);
+  const canReview =
+    isCompletedOrRecorded &&
+    currentUser &&
+    ['admin', 'user'].includes(currentUser.role) &&
+    currentUser.id !== deed?.assigned_to?.id;
+  const myReview = reviews.find((r) => r.reviewer.id === currentUser?.id);
 
   function loadDeed() {
     api.get(`/deeds/${id}`)
@@ -63,7 +139,14 @@ export default function DeedDetailPage() {
         setDeed(r.data.data);
         setDocuments(r.data.data.documents || []);
       })
-      .catch(() => toast.error('Failed to load deed'));
+      .catch((err) => {
+        if (err?.response?.status === 403) {
+          toast.info('You no longer have access to this deed.');
+          router.push('/deeds');
+        } else {
+          toast.error('Failed to load deed');
+        }
+      });
   }
 
   function loadComments() {
@@ -72,7 +155,57 @@ export default function DeedDetailPage() {
       .catch(() => {});
   }
 
-  useEffect(() => { loadDeed(); loadComments(); }, [id]);
+  function loadReviews() {
+    api.get(`/deeds/${id}/reviews`)
+      .then((r) => setReviews(r.data.data || []))
+      .catch(() => {});
+  }
+
+  useEffect(() => { loadDeed(); loadComments(); loadReviews(); }, [id]);
+
+  function startEditReview(review: Review) {
+    setEditingReview(review);
+    setReviewRating(review.rating);
+    setReviewBody(review.body ?? '');
+  }
+
+  function cancelEditReview() {
+    setEditingReview(null);
+    setReviewRating(0);
+    setReviewBody('');
+  }
+
+  async function handleReviewSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!reviewRating) return;
+
+    const req = editingReview
+      ? api.put(`/reviews/${editingReview.id}`, { rating: reviewRating, body: reviewBody })
+      : api.post(`/deeds/${id}/reviews`, { rating: reviewRating, body: reviewBody });
+
+    await toast.promise(
+      req.then((res) => {
+        const updated: Review = res.data.data ?? res.data;
+        setReviews((prev) =>
+          editingReview
+            ? prev.map((r) => (r.id === editingReview.id ? updated : r))
+            : [...prev, updated]
+        );
+        setEditingReview(null);
+        setReviewRating(0);
+        setReviewBody('');
+      }),
+      {
+        pending: 'Saving review...',
+        success: 'Review saved',
+        error: {
+          render: ({ data }: { data: unknown }) =>
+            (data as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            'Failed to save review',
+        },
+      }
+    );
+  }
 
   async function handleStatusChange(newStatus: string) {
     if (!deed || newStatus === deed.status) return;
@@ -133,8 +266,8 @@ export default function DeedDetailPage() {
           {deed.description && <p className="text-gray-500 mt-1">{deed.description}</p>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${statusColors[deed.status] ?? 'bg-gray-100 text-gray-700'}`}>
-            {deed.status}
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[deed.status] ?? 'bg-gray-100 text-gray-700'}`}>
+            {statusLabels[deed.status] ?? deed.status}
           </span>
           <Link href={`/deeds/${id}/edit`} className="border border-gray-300 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 cursor-pointer transition-colors">
             Edit
@@ -177,20 +310,18 @@ export default function DeedDetailPage() {
           {/* Status change */}
           {canChangeStatus && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Change Status</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">Status</h3>
+              <p className="text-xs text-gray-400 mb-3">Current: <span className="font-medium text-gray-600">{statusLabels[deed.status] ?? deed.status}</span></p>
               <div className="space-y-1.5">
-                {STATUSES.map((s) => (
+                {allowedTransitions.map((s) => (
                   <button
                     key={s}
                     onClick={() => handleStatusChange(s)}
-                    disabled={s === deed.status || changingStatus}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm capitalize transition-colors cursor-pointer ${
-                      s === deed.status
-                        ? 'bg-blue-600 text-white font-semibold'
-                        : 'hover:bg-gray-100 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed'
-                    }`}
+                    disabled={changingStatus}
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
                   >
-                    {s}
+                    <span>→ {statusLabels[s] ?? s}</span>
+                    {changingStatus && <span className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />}
                   </button>
                 ))}
               </div>
@@ -211,6 +342,104 @@ export default function DeedDetailPage() {
               />
             </div>
           </div>
+
+          {/* Reviews — only shown for completed/recorded deeds */}
+          {isCompletedOrRecorded && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                <h3 className="text-sm font-semibold text-gray-800">Reviews</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="p-5 space-y-4">
+                {/* Existing reviews */}
+                {reviews.length === 0 && (
+                  <p className="text-sm text-gray-400 text-center py-2">No reviews yet.</p>
+                )}
+                {reviews.map((review) => {
+                  const isOwnReview = currentUser?.id === review.reviewer.id;
+                  const isEditing = editingReview?.id === review.id;
+                  if (isEditing) return null;
+                  return (
+                    <div key={review.id} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <StarDisplay rating={review.rating} />
+                          <span className="text-sm font-medium text-gray-700">{review.reviewer.name}</span>
+                        </div>
+                        {isOwnReview && (
+                          <button
+                            type="button"
+                            onClick={() => startEditReview(review)}
+                            className="text-xs text-blue-600 hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {!isOwnReview && currentUser?.role === 'admin' && (
+                          <button
+                            type="button"
+                            onClick={() => startEditReview(review)}
+                            className="text-xs text-blue-600 hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">{new Date(review.created_at).toLocaleDateString()}</p>
+                      {review.body && (
+                        <p className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">{review.body}</p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Review form — shown when editing OR when canReview and no myReview yet */}
+                {(editingReview || (canReview && !myReview)) && (
+                  <>
+                    {reviews.length > 0 && <hr className="border-gray-100" />}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                        {editingReview ? 'Edit Review' : 'Leave a Review'}
+                      </p>
+                      <form onSubmit={handleReviewSubmit} className="space-y-3">
+                        <StarPicker value={reviewRating} onChange={setReviewRating} />
+                        <textarea
+                          value={reviewBody}
+                          onChange={(e) => setReviewBody(e.target.value)}
+                          placeholder="Optional comment..."
+                          rows={3}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={!reviewRating || submittingReview}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition-colors disabled:cursor-not-allowed"
+                          >
+                            Save Review
+                          </button>
+                          {editingReview && (
+                            <button
+                              type="button"
+                              onClick={cancelEditReview}
+                              className="border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 cursor-pointer transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </form>
+                    </div>
+                  </>
+                )}
+
+                {/* No assignee notice */}
+                {canReview && !deed.assigned_to && (
+                  <p className="text-sm text-gray-400 italic">No deed writer assigned — cannot leave a review.</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right: comments */}

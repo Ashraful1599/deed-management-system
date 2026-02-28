@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { StatCard } from '@/components/ui/StatCard';
@@ -21,20 +21,35 @@ interface Stats {
 }
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700',
-  pending: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-blue-100 text-blue-800',
-  recorded: 'bg-green-100 text-green-800',
+  draft:        'bg-gray-100 text-gray-700',
+  under_review: 'bg-yellow-100 text-yellow-800',
+  completed:    'bg-blue-100 text-blue-800',
+  archived:     'bg-green-100 text-green-800',
+};
+
+const statusLabels: Record<string, string> = {
+  draft:        'Draft',
+  under_review: 'Under Review',
+  completed:    'Completed',
+  archived:     'Archived',
 };
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
-  useEffect(() => {
-    api.get('/dashboard/stats')
+  const load = useCallback((df: string, dt: string) => {
+    setStats(null);
+    const params: Record<string, string> = {};
+    if (df) params.date_from = df;
+    if (dt) params.date_to = dt;
+    api.get('/dashboard/stats', { params })
       .then((r) => setStats(r.data))
       .catch(() => {});
   }, []);
+
+  useEffect(() => { load('', ''); }, []);
 
   if (!stats) return <div className="text-gray-500">Loading...</div>;
 
@@ -50,12 +65,40 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Date filter */}
+      <div className="bg-white rounded-lg shadow p-4 flex flex-wrap items-center gap-3">
+        <span className="text-sm text-gray-500 font-medium">Filter by date:</span>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => { setDateFrom(e.target.value); load(e.target.value, dateTo); }}
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          title="From date"
+        />
+        <span className="text-gray-400 text-sm">–</span>
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => { setDateTo(e.target.value); load(dateFrom, e.target.value); }}
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          title="To date"
+        />
+        {(dateFrom || dateTo) && (
+          <button
+            onClick={() => { setDateFrom(''); setDateTo(''); load('', ''); }}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard title="Total Deeds" value={totalDeeds ?? 0} icon={<IconDocument />} color="blue" />
         <StatCard title="Draft" value={stats.deeds_by_status?.draft ?? 0} icon={<IconDocument />} color="gray" />
-        <StatCard title="Pending" value={stats.deeds_by_status?.pending ?? 0} icon={<IconDocument />} color="yellow" />
-        <StatCard title="Recorded" value={stats.deeds_by_status?.recorded ?? 0} icon={<IconDocument />} color="green" />
+        <StatCard title="Under Review" value={stats.deeds_by_status?.under_review ?? 0} icon={<IconDocument />} color="yellow" />
+        <StatCard title="Archived" value={stats.deeds_by_status?.archived ?? 0} icon={<IconDocument />} color="green" />
       </div>
 
       {!isAdmin && (
@@ -87,8 +130,8 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs px-2 py-0.5 rounded capitalize ${statusColors[deed.status] ?? 'bg-gray-100 text-gray-700'}`}>
-                  {deed.status}
+                <span className={`text-xs px-2 py-0.5 rounded ${statusColors[deed.status] ?? 'bg-gray-100 text-gray-700'}`}>
+                  {statusLabels[deed.status] ?? deed.status}
                 </span>
                 <span className="text-xs text-gray-400">
                   {new Date(deed.created_at).toLocaleDateString()}

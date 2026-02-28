@@ -10,10 +10,10 @@ class Deed extends Model
 {
     use HasFactory, SoftDeletes;
 
-    const STATUSES = ['draft', 'pending', 'completed', 'recorded'];
+    const STATUSES = ['draft', 'under_review', 'completed', 'archived'];
 
     protected $fillable = [
-        'title', 'description', 'created_by', 'assigned_to', 'status', 'notes',
+        'deed_number', 'title', 'description', 'created_by', 'assigned_to', 'status', 'notes',
     ];
 
     public function creator()
@@ -36,6 +36,11 @@ class Deed extends Model
         return $this->hasMany(Document::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(DeedReview::class);
+    }
+
     /**
      * Check if a user can access this deed.
      */
@@ -51,6 +56,37 @@ class Deed extends Model
      */
     public function canChangeStatus(User $user): bool
     {
-        return $user->isAdmin() || $this->assigned_to === $user->id;
+        return $user->isAdmin()
+            || $this->assigned_to === $user->id
+            || $this->created_by  === $user->id;
+    }
+
+    /**
+     * Return the status values this user is allowed to transition to from the current status.
+     */
+    public function allowedTransitions(User $user): array
+    {
+        $map = [
+            'draft'        => ['under_review'],
+            'under_review' => ['completed', 'draft'],
+            'completed'    => ['archived'],
+            'archived'     => ['completed'],
+        ];
+
+        $all = $map[$this->status] ?? [];
+
+        if ($user->isAdmin()) return $all;
+
+        // Assigned deed writer can mark under_review → completed
+        if ($this->assigned_to === $user->id) {
+            return array_values(array_intersect(['completed'], $all));
+        }
+
+        // Creator can submit draft for review
+        if ($this->created_by === $user->id) {
+            return array_values(array_intersect(['under_review'], $all));
+        }
+
+        return [];
     }
 }
