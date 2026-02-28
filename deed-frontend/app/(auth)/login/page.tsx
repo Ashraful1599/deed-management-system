@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       const { user } = await login(loginField, password);
       dispatch(setUser(user));
-      router.push('/dashboard');
+      router.push(user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err: unknown) {
       const res = (err as { response?: { data?: { message?: string; email_verified?: boolean; email?: string }; status?: number } })?.response;
       if (res?.status === 403 && res?.data?.email_verified === false) {
