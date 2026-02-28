@@ -34,33 +34,45 @@ const statusLabels: Record<string, string> = {
 const STATUSES = ['', 'draft', 'under_review', 'completed', 'archived'];
 
 export default function AdminDeedsPage() {
-  const [deeds, setDeeds]   = useState<Deed[]>([]);
+  const [deeds, setDeeds]     = useState<Deed[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');
   const [status, setStatus]   = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo]     = useState('');
+  const [page, setPage]         = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal]       = useState(0);
 
-  const load = useCallback((s: string, st: string, df: string, dt: string) => {
+  const load = useCallback((s: string, st: string, df: string, dt: string, p: number) => {
     setLoading(true);
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = { page: String(p) };
     if (s)  params.search    = s;
     if (st) params.status    = st;
     if (df) params.date_from = df;
     if (dt) params.date_to   = dt;
     api.get('/admin/deeds', { params })
-      .then((r) => setDeeds(r.data.data))
+      .then((r) => {
+        setDeeds(r.data.data);
+        setLastPage(r.data.meta?.last_page ?? r.data.last_page ?? 1);
+        setTotal(r.data.meta?.total ?? r.data.total ?? 0);
+      })
       .catch(() => toast.error('Failed to load deeds'))
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load('', '', '', ''); }, []);
+  useEffect(() => { load('', '', '', '', 1); }, []);
 
   function handleDelete(id: number) {
     if (!confirm('Delete this deed permanently?')) return;
     api.delete(`/deeds/${id}`)
-      .then(() => { toast.success('Deed deleted'); load(search, status, dateFrom, dateTo); })
+      .then(() => { toast.success('Deed deleted'); load(search, status, dateFrom, dateTo, page); })
       .catch(() => toast.error('Delete failed'));
+  }
+
+  function goToPage(p: number) {
+    setPage(p);
+    load(search, status, dateFrom, dateTo, p);
   }
 
   return (
@@ -79,12 +91,12 @@ export default function AdminDeedsPage() {
           placeholder="Search by title, deed #, user..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && load(search, status, dateFrom, dateTo)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { setPage(1); load(search, status, dateFrom, dateTo, 1); } }}
           className="flex-1 min-w-48 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
           value={status}
-          onChange={(e) => { setStatus(e.target.value); load(search, e.target.value, dateFrom, dateTo); }}
+          onChange={(e) => { setStatus(e.target.value); setPage(1); load(search, e.target.value, dateFrom, dateTo, 1); }}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {STATUSES.map((s) => (
@@ -95,7 +107,7 @@ export default function AdminDeedsPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={(e) => { setDateFrom(e.target.value); load(search, status, e.target.value, dateTo); }}
+            onChange={(e) => { setDateFrom(e.target.value); setPage(1); load(search, status, e.target.value, dateTo, 1); }}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             title="From date"
           />
@@ -103,20 +115,20 @@ export default function AdminDeedsPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={(e) => { setDateTo(e.target.value); load(search, status, dateFrom, e.target.value); }}
+            onChange={(e) => { setDateTo(e.target.value); setPage(1); load(search, status, dateFrom, e.target.value, 1); }}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             title="To date"
           />
         </div>
         <button
-          onClick={() => load(search, status, dateFrom, dateTo)}
+          onClick={() => { setPage(1); load(search, status, dateFrom, dateTo, 1); }}
           className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
         >
           Search
         </button>
         {(search || status || dateFrom || dateTo) && (
           <button
-            onClick={() => { setSearch(''); setStatus(''); setDateFrom(''); setDateTo(''); load('', '', '', ''); }}
+            onClick={() => { setSearch(''); setStatus(''); setDateFrom(''); setDateTo(''); setPage(1); load('', '', '', '', 1); }}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
             Clear
@@ -181,6 +193,42 @@ export default function AdminDeedsPage() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {lastPage > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
+              <p className="text-xs text-gray-500">
+                Page {page} of {lastPage} &mdash; {total} total
+              </p>
+              <div className="flex items-center gap-1">
+                <button onClick={() => goToPage(1)} disabled={page === 1}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">«</button>
+                <button onClick={() => goToPage(page - 1)} disabled={page === 1}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">‹ Prev</button>
+                {Array.from({ length: lastPage }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === lastPage || Math.abs(p - page) <= 2)
+                  .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                    if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...');
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, i) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${i}`} className="px-2 text-xs text-gray-400">…</span>
+                    ) : (
+                      <button key={p} onClick={() => goToPage(p as number)}
+                        className={`px-2.5 py-1 rounded text-xs font-medium ${p === page ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-200'}`}>
+                        {p}
+                      </button>
+                    )
+                  )}
+                <button onClick={() => goToPage(page + 1)} disabled={page === lastPage}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">Next ›</button>
+                <button onClick={() => goToPage(lastPage)} disabled={page === lastPage}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">»</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
