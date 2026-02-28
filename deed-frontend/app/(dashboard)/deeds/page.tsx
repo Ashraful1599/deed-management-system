@@ -61,34 +61,47 @@ export default function DeedsPage() {
   const [dateTo, setDateTo] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const load = useCallback((s: string, st: string, df: string, dt: string, sb: SortKey, sd: SortDir) => {
+  const load = useCallback((s: string, st: string, df: string, dt: string, sb: SortKey, sd: SortDir, p: number) => {
     setLoading(true);
-    const params: Record<string, string> = { sort_by: sb, sort_dir: sd };
+    const params: Record<string, string> = { sort_by: sb, sort_dir: sd, page: String(p) };
     if (s) params.search = s;
     if (st) params.status = st;
     if (df) params.date_from = df;
     if (dt) params.date_to = dt;
     api.get('/deeds', { params })
-      .then((r) => setDeeds(r.data.data))
+      .then((r) => {
+        setDeeds(r.data.data);
+        setLastPage(r.data.meta?.last_page ?? r.data.last_page ?? 1);
+        setTotal(r.data.meta?.total ?? r.data.total ?? 0);
+      })
       .catch(() => toast.error('Failed to load deeds'))
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(search, status, dateFrom, dateTo, sortBy, sortDir); }, []);
+  useEffect(() => { load(search, status, dateFrom, dateTo, sortBy, sortDir, 1); }, []);
 
   function handleSort(col: SortKey) {
     const newDir: SortDir = sortBy === col && sortDir === 'desc' ? 'asc' : 'desc';
     setSortBy(col);
     setSortDir(newDir);
-    load(search, status, dateFrom, dateTo, col, newDir);
+    setPage(1);
+    load(search, status, dateFrom, dateTo, col, newDir, 1);
   }
 
   function handleDelete(id: number) {
     if (!confirm('Delete this deed?')) return;
     api.delete(`/deeds/${id}`)
-      .then(() => { toast.success('Deed deleted'); load(search, status, dateFrom, dateTo, sortBy, sortDir); })
+      .then(() => { toast.success('Deed deleted'); load(search, status, dateFrom, dateTo, sortBy, sortDir, page); })
       .catch(() => toast.error('Delete failed'));
+  }
+
+  function goToPage(p: number) {
+    setPage(p);
+    load(search, status, dateFrom, dateTo, sortBy, sortDir, p);
   }
 
   function SortTh({ col, label, className }: { col: SortKey; label: string; className?: string }) {
@@ -121,12 +134,12 @@ export default function DeedsPage() {
           placeholder="Search by deed #, title, name, email, phone…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && load(search, status, dateFrom, dateTo, sortBy, sortDir)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { setPage(1); load(search, status, dateFrom, dateTo, sortBy, sortDir, 1); } }}
           className="flex-1 min-w-48 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
           value={status}
-          onChange={(e) => { setStatus(e.target.value); load(search, e.target.value, dateFrom, dateTo, sortBy, sortDir); }}
+          onChange={(e) => { setStatus(e.target.value); setPage(1); load(search, e.target.value, dateFrom, dateTo, sortBy, sortDir, 1); }}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {STATUSES.map((s) => (
@@ -137,7 +150,7 @@ export default function DeedsPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={(e) => { setDateFrom(e.target.value); load(search, status, e.target.value, dateTo, sortBy, sortDir); }}
+            onChange={(e) => { setDateFrom(e.target.value); setPage(1); load(search, status, e.target.value, dateTo, sortBy, sortDir, 1); }}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             title="From date"
           />
@@ -145,20 +158,20 @@ export default function DeedsPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={(e) => { setDateTo(e.target.value); load(search, status, dateFrom, e.target.value, sortBy, sortDir); }}
+            onChange={(e) => { setDateTo(e.target.value); setPage(1); load(search, status, dateFrom, e.target.value, sortBy, sortDir, 1); }}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             title="To date"
           />
         </div>
         <button
-          onClick={() => load(search, status, dateFrom, dateTo, sortBy, sortDir)}
+          onClick={() => { setPage(1); load(search, status, dateFrom, dateTo, sortBy, sortDir, 1); }}
           className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
         >
           Search
         </button>
         {(search || status || dateFrom || dateTo) && (
           <button
-            onClick={() => { setSearch(''); setStatus(''); setDateFrom(''); setDateTo(''); load('', '', '', '', sortBy, sortDir); }}
+            onClick={() => { setSearch(''); setStatus(''); setDateFrom(''); setDateTo(''); setPage(1); load('', '', '', '', sortBy, sortDir, 1); }}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
             Clear
@@ -236,6 +249,57 @@ export default function DeedsPage() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {lastPage > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
+              <p className="text-xs text-gray-500">
+                Page {page} of {lastPage} &mdash; {total} total
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToPage(1)}
+                  disabled={page === 1}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                >«</button>
+                <button
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page === 1}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                >‹ Prev</button>
+                {Array.from({ length: lastPage }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === lastPage || Math.abs(p - page) <= 2)
+                  .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                    if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...');
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, i) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${i}`} className="px-2 text-xs text-gray-400">…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => goToPage(p as number)}
+                        className={`px-2.5 py-1 rounded text-xs font-medium ${
+                          p === page ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >{p}</button>
+                    )
+                  )}
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page === lastPage}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                >Next ›</button>
+                <button
+                  onClick={() => goToPage(lastPage)}
+                  disabled={page === lastPage}
+                  className="px-2 py-1 rounded text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                >»</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
