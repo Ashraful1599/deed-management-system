@@ -30,6 +30,8 @@ class UserResource extends JsonResource
             'created_at'          => $this->created_at,
             'reviews_avg_rating'  => $this->whenNotNull($this->received_reviews_avg_rating),
             'reviews_count'       => $this->whenNotNull($this->received_reviews_count),
+            'referral_code'       => $this->referral_code,
+            'credits'             => $this->credits ?? 0,
         ];
     }
 }

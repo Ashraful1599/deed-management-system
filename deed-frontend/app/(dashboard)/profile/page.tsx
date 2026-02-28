@@ -5,6 +5,24 @@ import { toast } from 'react-toastify';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setUser } from '@/lib/store/slices/userSlice';
 
+interface ReferralEntry {
+  id: number;
+  name: string;
+  phone: string;
+  joined_at: string;
+  credited: boolean;
+  credited_at: string | null;
+}
+
+interface ReferralData {
+  referral_code: string;
+  referral_url: string;
+  credits: number;
+  total_referred: number;
+  total_credited: number;
+  referrals: ReferralEntry[];
+}
+
 const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
 const labelCls = 'block text-sm font-medium text-gray-700 mb-1';
 const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
@@ -225,6 +243,11 @@ export default function ProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
+  // Referral data
+  const [referralData, setReferralData] = useState<ReferralData | null>(null);
+  const [loadingReferral, setLoadingReferral] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   // Location dropdowns
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -258,6 +281,23 @@ export default function ProfilePage() {
       .then(setUpazilas)
       .catch(() => {});
   }, [profile.district_id]);
+
+  // Fetch referral data on mount
+  useEffect(() => {
+    setLoadingReferral(true);
+    api.get('/referrals')
+      .then((r) => setReferralData(r.data))
+      .catch(() => {})
+      .finally(() => setLoadingReferral(false));
+  }, []);
+
+  function copyReferralLink() {
+    if (!referralData) return;
+    navigator.clipboard.writeText(referralData.referral_url).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
+  }
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -558,6 +598,84 @@ export default function ProfilePage() {
           verifiedAt={currentUser.phone_verified_at ?? null}
           onVerified={(u) => dispatch(setUser(u as Parameters<typeof setUser>[0]))}
         />
+      </Section>
+
+      {/* Referral */}
+      <Section title="Referral Program">
+        {loadingReferral ? (
+          <div className="text-sm text-gray-400">Loading referral info…</div>
+        ) : referralData ? (
+          <div className="space-y-5">
+            {/* Credits summary */}
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-blue-50 rounded-lg py-3 px-2">
+                <p className="text-2xl font-bold text-blue-700">{referralData.credits}</p>
+                <p className="text-xs text-blue-500 mt-0.5">Your Credits</p>
+              </div>
+              <div className="bg-green-50 rounded-lg py-3 px-2">
+                <p className="text-2xl font-bold text-green-700">{referralData.total_referred}</p>
+                <p className="text-xs text-green-500 mt-0.5">Referred Users</p>
+              </div>
+              <div className="bg-purple-50 rounded-lg py-3 px-2">
+                <p className="text-2xl font-bold text-purple-700">{referralData.total_credited}</p>
+                <p className="text-xs text-purple-500 mt-0.5">Credited</p>
+              </div>
+            </div>
+
+            {/* Referral link */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Your Referral Link</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={referralData.referral_url}
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 focus:outline-none select-all"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  type="button"
+                  onClick={copyReferralLink}
+                  className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                  {copiedLink ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5">
+                Share this link. You earn <span className="font-medium text-gray-600">10 credits</span> for each person who signs up and verifies their account.
+                New users get <span className="font-medium text-gray-600">20 credits</span> on signup.
+              </p>
+            </div>
+
+            {/* Referrals list */}
+            {referralData.referrals.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Referred Users</p>
+                <div className="divide-y divide-gray-100 border border-gray-100 rounded-lg overflow-hidden">
+                  {referralData.referrals.map((r) => (
+                    <div key={r.id} className="flex items-center justify-between px-4 py-2.5 bg-white">
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{r.name}</p>
+                        <p className="text-xs text-gray-400">{r.phone}</p>
+                      </div>
+                      <div className="text-right">
+                        {r.credited ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                            +10 credited
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">Pending verification</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">Failed to load referral data.</p>
+        )}
       </Section>
 
       {/* Change password */}

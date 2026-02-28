@@ -11,8 +11,17 @@ export interface User {
   registration_number: string | null;
   office_name: string | null;
   district: string | null;
+  division_id: number | null;
+  district_id: number | null;
+  upazila_id: number | null;
+  division_name: string | null;
+  district_name: string | null;
+  upazila_name: string | null;
   avatar: string | null;
+  phone_verified_at: string | null;
   created_at: string;
+  referral_code: string | null;
+  credits: number;
 }
 
 export interface RegisterData {
@@ -24,6 +33,10 @@ export interface RegisterData {
   registration_number?: string;
   office_name?: string;
   district?: string;
+  division_id?: number | null;
+  district_id?: number | null;
+  upazila_id?: number | null;
+  referral_code?: string;
 }
 
 export async function login(loginField: string, password: string): Promise<{ user: User; token: string }> {
@@ -40,11 +53,22 @@ export async function resendVerificationEmail(token: string): Promise<void> {
   });
 }
 
-export async function register(data: RegisterData): Promise<{ user: User; token: string }> {
-  const res = await api.post('/register', data);
+export async function register(data: RegisterData & { avatarFile?: File }): Promise<{ user: User; token: string }> {
+  let body: FormData | RegisterData;
+  if (data.avatarFile) {
+    const fd = new FormData();
+    Object.entries(data).forEach(([k, v]) => {
+      if (k !== 'avatarFile' && v != null) fd.append(k, v as string);
+    });
+    fd.append('avatar', data.avatarFile);
+    body = fd;
+  } else {
+    const { avatarFile: _, ...rest } = data;
+    body = rest;
+  }
+  const res = await api.post('/register', body);
   const { user, token } = res.data;
-  localStorage.setItem('deed_token', token);
-  Cookies.set('deed_token', token, { expires: 7 });
+  // Do NOT store the token — user must verify email and log in before accessing the app
   return { user, token };
 }
 

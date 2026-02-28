@@ -27,6 +27,7 @@ class RegisterRequest extends FormRequest
             'district_id'         => ['nullable', 'integer', 'exists:bd_districts,id'],
             'upazila_id'          => ['nullable', 'integer', 'exists:bd_upazilas,id'],
             'avatar'              => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
+            'referral_code'       => ['nullable', 'string', 'max:10'],
         ];
     }
 }

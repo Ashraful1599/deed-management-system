@@ -86,6 +86,10 @@ class PhoneVerificationController extends Controller
         // Mark user's phone as verified
         $user->update(['phone_verified_at' => now()]);
         $user->refresh();
+
+        // Credit referrer if not yet credited
+        (new \App\Http\Controllers\AuthController())->creditReferrer($user);
+
         $user->load(['districtRel', 'upazila']);
 
         return response()->json([

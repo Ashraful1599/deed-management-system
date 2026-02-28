@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Referral;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,12 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $data = $request->validated();
+
+        // Resolve referrer before creating user
+        $referrer = null;
+        if (!empty($data['referral_code'])) {
+            $referrer = User::where('referral_code', $data['referral_code'])->first();
+        }
 
         $user = User::create([
             'name'                => $data['name'],
@@ -30,7 +37,17 @@ class AuthController extends Controller
             'division_id'         => $data['division_id'] ?? null,
             'district_id'         => $data['district_id'] ?? null,
             'upazila_id'          => $data['upazila_id'] ?? null,
+            'referred_by'         => $referrer?->id,
+            'credits'             => 20, // signup bonus
         ]);
+
+        // Create referral record if referred
+        if ($referrer) {
+            Referral::create([
+                'referrer_id' => $referrer->id,
+                'referred_id' => $user->id,
+            ]);
+        }
 
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
@@ -97,6 +114,7 @@ class AuthController extends Controller
 
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
+            $this->creditReferrer($user);
         }
 
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
@@ -176,5 +194,16 @@ class AuthController extends Controller
 
         $request->user()->update($data);
         return new UserResource($request->user()->fresh()->load(['divisionRel', 'districtRel', 'upazila']));
+    }
+
+    public function creditReferrer(User $user): void
+    {
+        if (!$user->referred_by) return;
+        $referral = Referral::where('referred_id', $user->id)
+            ->whereNull('credited_at')
+            ->first();
+        if (!$referral) return;
+        $referral->update(['credited_at' => now()]);
+        User::where('id', $user->referred_by)->increment('credits', 10);
     }
 }

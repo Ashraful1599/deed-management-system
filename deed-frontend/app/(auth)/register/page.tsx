@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { register, resendVerificationEmail } from '@/lib/auth';
 import { toast } from 'react-toastify';
 
@@ -19,7 +20,9 @@ interface Division { id: number; name: string; }
 interface District { id: number; division_id: number; name: string; }
 interface Upazila  { id: number; district_id: number; name: string; }
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get('ref') ?? '';
   const [step, setStep] = useState<'form' | 'phone-otp' | 'phone-verified' | 'email-check'>('form');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -124,6 +127,7 @@ export default function RegisterPage() {
         password: form.password,
         role: form.role,
         avatarFile: avatarFile ?? undefined,
+        ...(refCode ? { referral_code: refCode } : {}),
       };
       if (form.role === 'deed_writer') {
         payload.registration_number = form.registration_number;
@@ -471,5 +475,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
