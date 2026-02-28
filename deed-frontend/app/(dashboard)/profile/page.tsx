@@ -42,7 +42,7 @@ function Avatar({ name, src, size = 96 }: { name: string; src?: string; size?: n
       className="rounded-full bg-blue-600 text-white flex items-center justify-center font-bold flex-shrink-0"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
-      {name.charAt(0).toUpperCase()}
+      {name?.charAt(0).toUpperCase()}
     </div>
   );
 }
@@ -273,8 +273,8 @@ export default function ProfilePage() {
   useEffect(() => {
     if (currentUser) {
       setProfile({
-        name: currentUser.name,
-        email: currentUser.email,
+        name: currentUser.name ?? '',
+        email: currentUser.email ?? '',
         phone: currentUser.phone ?? '',
         office_name: currentUser.office_name ?? '',
         division_id: currentUser.division_id ?? null,
@@ -286,8 +286,8 @@ export default function ProfilePage() {
         const u = r.data.data ?? r.data;
         dispatch(setUser(u));
         setProfile({
-          name: u.name,
-          email: u.email,
+          name: u.name ?? '',
+          email: u.email ?? '',
           phone: u.phone ?? '',
           office_name: u.office_name ?? '',
           division_id: u.division_id ?? null,
@@ -318,7 +318,7 @@ export default function ProfilePage() {
         payload.upazila_id = profile.upazila_id;
       }
       const res = await api.put('/profile', payload);
-      dispatch(setUser(res.data.user ?? res.data));
+      dispatch(setUser(res.data.data ?? res.data.user ?? res.data));
       toast.success('Profile updated successfully');
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response?.data;
@@ -399,7 +399,7 @@ export default function ProfilePage() {
           <p className="text-sm text-gray-500 mt-0.5">{currentUser.email}</p>
           <div className="flex items-center gap-2 mt-2">
             <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${roleBadgeColor}`}>
-              {currentUser.role.replace('_', ' ')}
+              {currentUser.role?.replace('_', ' ')}
             </span>
             <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
               currentUser.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'

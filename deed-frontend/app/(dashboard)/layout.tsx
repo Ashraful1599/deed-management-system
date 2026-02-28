@@ -44,11 +44,20 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
+function Avatar({ name, src, size = 'md' }: { name: string; src?: string; size?: 'sm' | 'md' | 'lg' }) {
   const sizeMap = { sm: 'w-7 h-7 text-xs', md: 'w-9 h-9 text-sm', lg: 'w-12 h-12 text-base' };
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        className={`${sizeMap[size]} rounded-full object-cover flex-shrink-0`}
+      />
+    );
+  }
   return (
     <div className={`${sizeMap[size]} rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold flex-shrink-0`}>
-      {name.charAt(0).toUpperCase()}
+      {name?.charAt(0).toUpperCase()}
     </div>
   );
 }
@@ -71,10 +80,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const esRef = useRef<EventSource | null>(null);
 
-  // Fetch current user
+  // Fetch current user — redirect to login if unauthenticated
   useEffect(() => {
     if (!user) {
-      api.get('/user').then((r) => dispatch(setUser(r.data.data ?? r.data))).catch(() => {});
+      api.get('/user')
+        .then((r) => dispatch(setUser(r.data.data ?? r.data)))
+        .catch((err) => {
+          if (err?.response?.status === 401) {
+            window.location.href = '/login';
+          }
+        });
     }
   }, []);
 
@@ -156,7 +171,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const visibleNav = navItems.filter((item) => !item.adminOnly || user?.role === 'admin');
-  const roleLabel = user?.role.replace(/_/g, ' ') ?? '';
+  const roleLabel = user?.role?.replace(/_/g, ' ') ?? '';
   const roleBadgeColor = user?.role === 'admin'
     ? 'bg-red-100 text-red-700'
     : user?.role === 'deed_writer'
@@ -294,7 +309,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="flex items-center gap-2.5 pl-1 pr-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                 aria-label="Profile menu"
               >
-                <Avatar name={user.name} size="sm" />
+                <Avatar name={user.name} src={user.avatar ?? undefined} size="sm" />
                 <div className="text-left hidden sm:block">
                   <p className="text-sm font-medium text-gray-900 leading-tight">{user.name}</p>
                   <p className="text-xs text-gray-500 capitalize leading-tight">{roleLabel}</p>
@@ -309,7 +324,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
                   {/* User info block */}
                   <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
-                    <Avatar name={user.name} size="lg" />
+                    <Avatar name={user.name} src={user.avatar ?? undefined} size="lg" />
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
@@ -341,8 +356,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         {user.office_name && (
                           <p className="text-xs text-gray-600">{user.office_name}</p>
                         )}
-                        {user.district && (
-                          <p className="text-xs text-gray-600">{user.district}</p>
+                        {(user.district_name || user.upazila_name || user.district) && (
+                          <p className="text-xs text-gray-600">
+                            {[user.upazila_name, user.district_name].filter(Boolean).join(', ') || user.district}
+                          </p>
                         )}
                       </div>
                     )}
