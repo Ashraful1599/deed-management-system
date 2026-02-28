@@ -13,7 +13,17 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias(['role' => \App\Http\Middleware\RoleMiddleware::class]);
+        $middleware->redirectGuestsTo(fn ($request) => $request->expectsJson() ? null : null);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+        });
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) {
+            if ($e->getStatusCode() === 403 && ($request->is('api/*') || $request->expectsJson())) {
+                return response()->json(['message' => $e->getMessage() ?: 'Access denied.'], 403);
+            }
+        });
     })->create();

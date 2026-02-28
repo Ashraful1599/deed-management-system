@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Sample Deed Writer
+        // Sample Deed Writer — district_id=18 (Dhaka), upazila_id=149 (Savar), union_id=13 (Savar Union)
         User::updateOrCreate(
             ['email' => 'writer@deed.com'],
             [
@@ -50,7 +50,10 @@ class UserSeeder extends Seeder
                 'email_verified_at'   => $verified,
                 'registration_number' => 'DW-2024-001',
                 'office_name'         => 'City Law Office',
-                'district'            => 'Downtown',
+                'district'            => 'Dhaka',
+                'district_id'         => 18,
+                'upazila_id'          => 149,
+                'union_id'            => 13,
             ]
         );
     }

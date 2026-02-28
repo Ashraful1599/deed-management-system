@@ -16,7 +16,7 @@ export default function CreateDeedPage() {
   const [loading, setLoading] = useState(false);
   const [createdDeed, setCreatedDeed] = useState<{ id: number; title: string } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', notes: '', status: 'draft' });
+  const [form, setForm] = useState({ deed_number: '', title: '', description: '', notes: '', status: 'draft' });
 
   // User search
   const [query, setQuery] = useState('');
@@ -46,6 +46,7 @@ export default function CreateDeedPage() {
     setLoading(true);
     try {
       const payload: Record<string, unknown> = {
+        deed_number: form.deed_number || undefined,
         title: form.title,
         description: form.description || undefined,
         notes: form.notes || undefined,
@@ -129,6 +130,12 @@ export default function CreateDeedPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-5">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Deed Number</label>
+          <input type="text" value={form.deed_number} onChange={(e) => set('deed_number', e.target.value)} className={inputCls} placeholder="e.g. DN-2024-00123 (from registered office)" />
+          <p className="text-xs text-gray-400 mt-1">Assigned by the registered office. Leave blank if not yet available.</p>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title <span className="text-red-500">*</span></label>
           <input type="text" value={form.title} onChange={(e) => set('title', e.target.value)} required className={inputCls} placeholder="e.g. Property Transfer Agreement" />

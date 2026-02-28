@@ -76,7 +76,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -97,9 +97,7 @@ export default function LoginPage() {
               onClick={async () => {
                 setResending(true);
                 try {
-                  await api.post('/email/verify/resend', {}, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('deed_token') ?? ''}` },
-                  });
+                  await api.post('/email/verify/resend-by-email', { email: unverifiedEmail });
                   toast.success('Verification email resent!');
                 } catch {
                   toast.error('Could not resend — please try registering again.');
