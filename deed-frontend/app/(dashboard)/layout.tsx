@@ -7,10 +7,10 @@ import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setUser } from '@/lib/store/slices/userSlice';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
-import { IconDashboard, IconDocument, IconBell, IconShield } from '@/components/ui/Icons';
+import { IconDashboard, IconDocument, IconBell, IconShield, IconUsers } from '@/components/ui/Icons';
 import { ReactNode } from 'react';
 
-interface NavItem { href: string; label: string; icon: ReactNode; adminOnly?: boolean; }
+interface NavItem { href: string; label: string; icon: ReactNode; }
 interface Notification {
   id: number;
   type: string;
@@ -19,11 +19,17 @@ interface Notification {
   created_at: string;
 }
 
-const navItems: NavItem[] = [
+const userNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <IconDashboard /> },
   { href: '/deeds', label: 'Deeds', icon: <IconDocument /> },
   { href: '/notifications', label: 'Notifications', icon: <IconBell /> },
-  { href: '/admin', label: 'Admin Panel', icon: <IconShield />, adminOnly: true },
+];
+
+const adminNavItems: NavItem[] = [
+  { href: '/admin', label: 'Admin Dashboard', icon: <IconShield /> },
+  { href: '/admin/users', label: 'Manage Users', icon: <IconUsers /> },
+  { href: '/admin/deeds', label: 'Manage Deeds', icon: <IconDocument /> },
+  { href: '/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
 
 const typeLabels: Record<string, string> = {
@@ -170,7 +176,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setUnreadCount((prev) => Math.max(0, prev - 1));
   }
 
-  const visibleNav = navItems.filter((item) => !item.adminOnly || user?.role === 'admin');
+  const visibleNav = user?.role === 'admin' ? adminNavItems : userNavItems;
   const roleLabel = user?.role?.replace(/_/g, ' ') ?? '';
   const roleBadgeColor = user?.role === 'admin'
     ? 'bg-red-100 text-red-700'
@@ -188,7 +194,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {visibleNav.map((item) => {
-            const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            const active = pathname === item.href || (item.href !== '/dashboard' && item.href !== '/admin' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
