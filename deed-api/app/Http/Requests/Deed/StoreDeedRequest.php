@@ -9,8 +9,10 @@ class StoreDeedRequest extends FormRequest {
             'title'       => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'assigned_to' => ['nullable', 'exists:users,id'],
-            'status'      => ['sometimes', 'in:draft,under_review,completed,archived'],
-            'notes'       => ['nullable', 'string'],
+            'status'           => ['sometimes', 'in:draft,under_review,completed,archived'],
+            'notes'            => ['nullable', 'string'],
+            'agreement_amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_status'   => ['sometimes', 'in:pending,partial,completed,overdue'],
         ];
     }
 }

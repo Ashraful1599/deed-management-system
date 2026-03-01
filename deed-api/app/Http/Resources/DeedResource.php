@@ -18,6 +18,9 @@ class DeedResource extends JsonResource {
             'documents_count'    => $this->whenCounted('documents'),
             'reviews_count'      => $this->whenCounted('reviews'),
             'reviews_avg_rating' => $this->reviews_avg_rating !== null ? round((float) $this->reviews_avg_rating, 1) : null,
+            'agreement_amount' => $this->agreement_amount,
+            'payment_status'   => $this->payment_status,
+            'amount_paid'      => $this->payments_sum_amount !== null ? (float) $this->payments_sum_amount : null,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
         ];

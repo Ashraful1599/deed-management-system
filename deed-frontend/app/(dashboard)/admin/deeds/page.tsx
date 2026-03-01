@@ -2,7 +2,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { fmtDate } from '@/lib/date';
 import { toast } from 'react-toastify';
+import { showConfirm } from '@/lib/confirm';
 
 interface User { id: number; name: string; email: string; }
 interface Deed {
@@ -63,8 +65,8 @@ export default function AdminDeedsPage() {
 
   useEffect(() => { load('', '', '', '', 1); }, []);
 
-  function handleDelete(id: number) {
-    if (!confirm('Delete this deed permanently?')) return;
+  async function handleDelete(id: number) {
+    if (!await showConfirm('This deed and all its data will be permanently deleted.', { title: 'Delete deed?' })) return;
     api.delete(`/deeds/${id}`)
       .then(() => { toast.success('Deed deleted'); load(search, status, dateFrom, dateTo, page); })
       .catch(() => toast.error('Delete failed'));
@@ -177,7 +179,7 @@ export default function AdminDeedsPage() {
                   <td className="px-4 py-3 text-center text-gray-500">{d.comments_count}</td>
                   <td className="px-4 py-3 text-center text-gray-500">{d.documents_count}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
-                    {new Date(d.created_at).toLocaleDateString()}
+                    {fmtDate(d.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 text-xs">

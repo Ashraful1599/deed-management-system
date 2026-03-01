@@ -2,7 +2,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { fmtDate } from '@/lib/date';
 import { toast } from 'react-toastify';
+import { showConfirm } from '@/lib/confirm';
 
 interface User { id: number; name: string; email: string; }
 interface Deed {
@@ -92,8 +94,8 @@ export default function DeedsPage() {
     load(search, status, dateFrom, dateTo, col, newDir, 1);
   }
 
-  function handleDelete(id: number) {
-    if (!confirm('Delete this deed?')) return;
+  async function handleDelete(id: number) {
+    if (!await showConfirm('This deed will be permanently deleted.', { title: 'Delete deed?' })) return;
     api.delete(`/deeds/${id}`)
       .then(() => { toast.success('Deed deleted'); load(search, status, dateFrom, dateTo, sortBy, sortDir, page); })
       .catch(() => toast.error('Delete failed'));
@@ -234,11 +236,10 @@ export default function DeedsPage() {
                       <span className="text-gray-300 text-xs">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{new Date(d.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDate(d.created_at)}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 text-xs">
                       <Link href={`/dashboard/deeds/${d.id}`} className="text-blue-600 hover:underline">View</Link>
-                      <Link href={`/dashboard/deeds/${d.id}/edit`} className="text-gray-600 hover:underline">Edit</Link>
                       <button onClick={() => handleDelete(d.id)} className="text-red-600 hover:underline">Delete</button>
                     </div>
                   </td>

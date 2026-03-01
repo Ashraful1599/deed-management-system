@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { fmtDate } from '@/lib/date';
 import { StatCard } from '@/components/ui/StatCard';
 import { IconUsers, IconDocument, IconShield } from '@/components/ui/Icons';
 
@@ -202,7 +203,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Badge label={roleLabels[u.role] ?? u.role} color={roleColors[u.role] ?? 'bg-gray-100 text-gray-600'} />
                   <Badge label={u.status} color={userStatusColors[u.status] ?? 'bg-gray-100 text-gray-600'} />
-                  <span className="text-xs text-gray-400 ml-1">{new Date(u.created_at).toLocaleDateString()}</span>
+                  <span className="text-xs text-gray-400 ml-1">{fmtDate(u.created_at)}</span>
                 </div>
               </div>
             ))}
@@ -232,7 +233,7 @@ export default function AdminPage() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Badge label={statusLabels[d.status] ?? d.status} color={statusColors[d.status] ?? 'bg-gray-100 text-gray-700'} />
-                  <span className="text-xs text-gray-400 ml-1">{new Date(d.created_at).toLocaleDateString()}</span>
+                  <span className="text-xs text-gray-400 ml-1">{fmtDate(d.created_at)}</span>
                 </div>
               </div>
             ))}

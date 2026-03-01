@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { fmtDateTime } from '@/lib/date';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 
@@ -95,7 +96,7 @@ export default function NotificationsPage() {
                     View deed: {n.data.deed_title}
                   </Link>
                 )}
-                <p className="text-xs text-gray-400 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">{fmtDateTime(n.created_at)}</p>
               </div>
               {!n.read && (
                 <button

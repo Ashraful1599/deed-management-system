@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setUser } from '@/lib/store/slices/userSlice';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
-import { IconDashboard, IconDocument, IconBell, IconShield, IconUsers } from '@/components/ui/Icons';
+import { IconDashboard, IconDocument, IconBell, IconShield, IconUsers, IconCalendar } from '@/components/ui/Icons';
 import { ReactNode } from 'react';
 
 interface NavItem { href: string; label: string; icon: ReactNode; }
@@ -22,6 +22,14 @@ interface Notification {
 const userNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <IconDashboard /> },
   { href: '/dashboard/deeds', label: 'Deeds', icon: <IconDocument /> },
+  { href: '/dashboard/appointments', label: 'Appointments', icon: <IconCalendar /> },
+  { href: '/dashboard/notifications', label: 'Notifications', icon: <IconBell /> },
+];
+
+const deedWriterNavItems: NavItem[] = [
+  { href: '/dashboard', label: 'Dashboard', icon: <IconDashboard /> },
+  { href: '/dashboard/deeds', label: 'Deeds', icon: <IconDocument /> },
+  { href: '/dashboard/appointments', label: 'Appointments', icon: <IconCalendar /> },
   { href: '/dashboard/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
 
@@ -29,6 +37,7 @@ const adminNavItems: NavItem[] = [
   { href: '/admin', label: 'Admin Dashboard', icon: <IconShield /> },
   { href: '/admin/users', label: 'Manage Users', icon: <IconUsers /> },
   { href: '/admin/deeds', label: 'Manage Deeds', icon: <IconDocument /> },
+  { href: '/dashboard/appointments', label: 'Appointments', icon: <IconCalendar /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
 
@@ -38,6 +47,8 @@ const typeLabels: Record<string, string> = {
   status_changed: 'Status Changed',
   comment_added: 'New Comment',
   document_uploaded: 'Document Uploaded',
+  appointment_requested: 'Appointment Request',
+  appointment_updated: 'Appointment Update',
 };
 
 function timeAgo(dateStr: string): string {
@@ -176,7 +187,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setUnreadCount((prev) => Math.max(0, prev - 1));
   }
 
-  const visibleNav = user?.role === 'admin' ? adminNavItems : userNavItems;
+  const visibleNav = user?.role === 'admin' ? adminNavItems
+    : user?.role === 'deed_writer' ? deedWriterNavItems
+    : userNavItems;
   const roleLabel = user?.role?.replace(/_/g, ' ') ?? '';
   const roleBadgeColor = user?.role === 'admin'
     ? 'bg-red-100 text-red-700'

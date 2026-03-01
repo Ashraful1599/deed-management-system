@@ -17,7 +17,7 @@ class DeedController extends Controller {
             ->withCount(['comments', 'documents', 'reviews'])
             ->withAvg('reviews', 'rating');
 
-        if (!$user->isAdmin()) {
+        if (!$user->isAdmin() && $user->role !== 'deed_writer') {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)
                   ->orWhere('assigned_to', $user->id);
@@ -122,6 +122,7 @@ class DeedController extends Controller {
         $this->authorizeAccess($deed, $request->user());
         $deed->load(['creator', 'assignee', 'documents']);
         $deed->loadCount(['comments', 'documents']);
+        $deed->loadSum('payments', 'amount');
         return new DeedResource($deed);
     }
 

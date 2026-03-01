@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/lib/api';
+import { fmtDate } from '@/lib/date';
 import { toast } from 'react-toastify';
 
 interface User {
@@ -182,7 +183,7 @@ export default function AdminUsersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-gray-600 text-xs">{user.office_name ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(user.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{fmtDate(user.created_at)}</td>
                   <td className="px-4 py-3">
                     {editingId === user.id ? (
                       <div className="flex gap-2">

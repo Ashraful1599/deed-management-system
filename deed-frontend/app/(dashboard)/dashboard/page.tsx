@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { fmtDate } from '@/lib/date';
 import { StatCard } from '@/components/ui/StatCard';
 import { IconDocument } from '@/components/ui/Icons';
 
@@ -134,7 +135,7 @@ export default function DashboardPage() {
                   {statusLabels[deed.status] ?? deed.status}
                 </span>
                 <span className="text-xs text-gray-400">
-                  {new Date(deed.created_at).toLocaleDateString()}
+                  {fmtDate(deed.created_at)}
                 </span>
               </div>
             </div>

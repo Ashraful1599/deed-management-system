@@ -16,7 +16,7 @@ export default function CreateDeedPage() {
   const [loading, setLoading] = useState(false);
   const [createdDeed, setCreatedDeed] = useState<{ id: number; title: string } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [form, setForm] = useState({ deed_number: '', title: '', description: '', notes: '', status: 'draft' });
+  const [form, setForm] = useState({ deed_number: '', title: '', description: '', notes: '', status: 'draft', agreement_amount: '', payment_status: 'pending' });
 
   // User search
   const [query, setQuery] = useState('');
@@ -51,6 +51,8 @@ export default function CreateDeedPage() {
         description: form.description || undefined,
         notes: form.notes || undefined,
         status: form.status,
+        agreement_amount: form.agreement_amount ? Number(form.agreement_amount) : undefined,
+        payment_status: form.payment_status,
       };
       if (selectedUser) payload.assigned_to = selectedUser.id;
       const res = await api.post('/deeds', payload);
@@ -150,9 +152,9 @@ export default function CreateDeedPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select value={form.status} onChange={(e) => set('status', e.target.value)} className={`${inputCls} cursor-pointer`}>
             <option value="draft">Draft</option>
-            <option value="pending">Pending</option>
+            <option value="under_review">Under Review</option>
             <option value="completed">Completed</option>
-            <option value="recorded">Recorded</option>
+            <option value="archived">Archived</option>
           </select>
         </div>
 
@@ -195,6 +197,22 @@ export default function CreateDeedPage() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
           <textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={2} className={inputCls} placeholder="Internal notes..." />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Agreement Amount (৳)</label>
+            <input type="number" min="0" step="0.01" value={form.agreement_amount} onChange={(e) => set('agreement_amount', e.target.value)} className={inputCls} placeholder="e.g. 50000" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+            <select value={form.payment_status} onChange={(e) => set('payment_status', e.target.value)} className={`${inputCls} cursor-pointer`}>
+              <option value="pending">Pending</option>
+              <option value="partial">Partial</option>
+              <option value="completed">Completed</option>
+              <option value="overdue">Overdue</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex gap-3 pt-2">

@@ -1,7 +1,9 @@
 <?php
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DeedPaymentController;
 use App\Http\Controllers\DeedReviewController;
 use App\Http\Controllers\PhoneVerificationController;
 use App\Http\Controllers\DashboardController;
@@ -22,6 +24,7 @@ Route::get('/locations/districts/{district}/upazilas', [LocationController::clas
 Route::get('/locations/upazilas/{upazila}/unions', [LocationController::class, 'unions']);
 Route::get('/deed-writers', [DeedWriterController::class, 'index']);
 Route::get('/deed-writers/{user}', [DeedWriterController::class, 'show']);
+Route::post('/deed-writers/{user}/appointments', [AppointmentController::class, 'store']);
 
 // Public
 Route::post('/register', [AuthController::class, 'register']);
@@ -64,6 +67,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('deeds', DeedController::class);
     Route::get('/deeds/{deed}/activities', [DeedController::class, 'activities']);
 
+    // Payments (nested under deed + standalone delete)
+    Route::get('/deeds/{deed}/payments',    [DeedPaymentController::class, 'index']);
+    Route::post('/deeds/{deed}/payments',   [DeedPaymentController::class, 'store']);
+    Route::put('/payments/{payment}',       [DeedPaymentController::class, 'update']);
+    Route::delete('/payments/{payment}',    [DeedPaymentController::class, 'destroy']);
+
     // Comments (nested under deed)
     Route::get('/deeds/{deed}/comments',    [CommentController::class, 'index']);
     Route::post('/deeds/{deed}/comments',   [CommentController::class, 'store']);
@@ -88,6 +97,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+
+    // Appointments
+    Route::get('/appointments', [AppointmentController::class, 'index']);
+    Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update']);
 
     // Referrals
     Route::get('/referrals', [ReferralController::class, 'index']);

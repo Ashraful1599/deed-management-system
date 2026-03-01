@@ -14,6 +14,7 @@ class Deed extends Model
 
     protected $fillable = [
         'deed_number', 'title', 'description', 'created_by', 'assigned_to', 'status', 'notes',
+        'agreement_amount', 'payment_status',
     ];
 
     public function creator()
@@ -46,14 +47,20 @@ class Deed extends Model
         return $this->hasMany(DeedActivity::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(DeedPayment::class);
+    }
+
     /**
      * Check if a user can access this deed.
      */
     public function canAccess(User $user): bool
     {
         return $user->isAdmin()
-            || $this->created_by === $user->id
-            || $this->assigned_to === $user->id;
+            || $user->role === 'deed_writer'
+            || $this->created_by == $user->id
+            || $this->assigned_to == $user->id;
     }
 
     /**
@@ -62,8 +69,9 @@ class Deed extends Model
     public function canChangeStatus(User $user): bool
     {
         return $user->isAdmin()
-            || $this->assigned_to === $user->id
-            || $this->created_by  === $user->id;
+            || $user->role === 'deed_writer'
+            || $this->assigned_to == $user->id
+            || $this->created_by  == $user->id;
     }
 
     /**
@@ -80,14 +88,12 @@ class Deed extends Model
 
         $all = $map[$this->status] ?? [];
 
-        if ($user->isAdmin()) return $all;
-
-        // Assigned deed writer can mark under_review → completed
-        if ($this->assigned_to === $user->id) {
-            return array_values(array_intersect(['completed'], $all));
+        // Admin and deed_writer can set any status
+        if ($user->isAdmin() || $user->role === 'deed_writer') {
+            return array_values(array_diff(array_keys($map), [$this->status]));
         }
 
-        // Creator can submit draft for review
+        // Creator (regular user) can submit draft for review
         if ($this->created_by === $user->id) {
             return array_values(array_intersect(['under_review'], $all));
         }
