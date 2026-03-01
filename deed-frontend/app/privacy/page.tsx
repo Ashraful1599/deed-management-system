@@ -74,7 +74,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'We implement industry-standard security measures including HTTPS encryption for all data in transit, hashed password storage (bcrypt), and token-based authentication (Laravel Sanctum). However, no system is completely secure. We encourage you to use a strong, unique password and to report any suspected security issues to us immediately at support@deedmanager.com.bd.',
+        body: 'We implement industry-standard security measures including HTTPS encryption for all data in transit, hashed password storage (bcrypt), and token-based authentication (Laravel Sanctum). However, no system is completely secure. We encourage you to use a strong, unique password and to report any suspected security issues to us immediately at support@dolilbd.com.',
       },
     ],
   },
@@ -87,7 +87,7 @@ const sections = [
       },
       {
         subtitle: '6.2 Account deletion',
-        body: 'You may request deletion of your account by contacting us at support@deedmanager.com.bd. We will process your request within 30 days.',
+        body: 'You may request deletion of your account by contacting us at support@dolilbd.com. We will process your request within 30 days.',
       },
       {
         subtitle: '6.3 Data portability',
@@ -127,7 +127,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'If you have questions about this Privacy Policy or how we handle your data, please contact us at:\n\nDeed Manager\nEmail: support@deedmanager.com.bd\nPhone: +880 1700-000000\nDhaka, Bangladesh',
+        body: 'If you have questions about this Privacy Policy or how we handle your data, please contact us at:\n\nDolilBD\nEmail: support@dolilbd.com\nPhone: +880 1700-000000\nDhaka, Bangladesh',
       },
     ],
   },
@@ -154,8 +154,8 @@ export default function PrivacyPage() {
           {/* Intro */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-10">
             <p className="text-sm text-blue-800 leading-relaxed">
-              Deed Manager (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the Deed Manager platform
-              at deedmanager.com.bd. This Privacy Policy explains what personal information we collect,
+              DolilBD (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the DolilBD platform
+              at dolilbd.com. This Privacy Policy explains what personal information we collect,
               how we use it, and your rights regarding that information. By using our platform,
               you agree to the practices described in this policy.
             </p>

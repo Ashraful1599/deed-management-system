@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
@@ -69,6 +69,84 @@ function SkeletonCard() {
 
 const selectCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
 
+// Nominatim sometimes returns old/anglicised district & division names — map them to our DB names
+const NAME_ALIASES: Record<string, string> = {
+  chittagong:   'chattogram',
+  comilla:      'cumilla',
+  jessore:      'jashore',
+  bogra:        'bogura',
+  bandarban:    'bandarban',
+  brahmanbaria: 'brahmanbaria',
+  chandpur:     'chandpur',
+  feni:         'feni',
+  khagrachari:  'khagrachhari',
+  lakshmipur:   'lakshmipur',
+  noakhali:     'noakhali',
+  rangamati:    'rangamati',
+  barisal:      'barishal',
+  pirojpur:     'pirojpur',
+  patuakhali:   'patuakhali',
+  borguna:      'barguna',
+  jhalokati:    'jhalokathi',
+  habiganj:     'habiganj',
+  moulvibazar:  'moulvibazar',
+  sunamganj:    'sunamganj',
+  sylhet:       'sylhet',
+  dinajpur:     'dinajpur',
+  gaibandha:    'gaibandha',
+  joypurhat:    'joypurhat',
+  kurigram:     'kurigram',
+  lalmonirhat:  'lalmonirhat',
+  nilphamari:   'nilphamari',
+  panchagarh:   'panchagarh',
+  rangpur:      'rangpur',
+  thakurgaon:   'thakurgaon',
+  faridpur:     'faridpur',
+  gopalganj:    'gopalganj',
+  madaripur:    'madaripur',
+  manikganj:    'manikganj',
+  munshiganj:   'munshiganj',
+  narayanganj:  'narayanganj',
+  narsingdi:    'narsingdi',
+  rajbari:      'rajbari',
+  shariatpur:   'shariatpur',
+  tangail:      'tangail',
+  kishoreganj:  'kishoreganj',
+  mymensingh:   'mymensingh',
+  netrokona:    'netrokona',
+  sherpur:      'sherpur',
+  jamalpur:     'jamalpur',
+  bagerhat:     'bagerhat',
+  chuadanga:    'chuadanga',
+  khulna:       'khulna',
+  kushtia:      'kushtia',
+  magura:       'magura',
+  meherpur:     'meherpur',
+  narail:       'narail',
+  satkhira:     'satkhira',
+  chapainawabganj: 'chapai nawabganj',
+  naogaon:      'naogaon',
+  natore:       'natore',
+  pabna:        'pabna',
+  rajshahi:     'rajshahi',
+  sirajganj:    'sirajganj',
+};
+
+function normaliseName(raw: string): string {
+  const cleaned = raw
+    .replace(/\s*(division|bibhag|district|zila|jela|sadar)\s*/gi, '')
+    .trim()
+    .toLowerCase();
+  return NAME_ALIASES[cleaned] ?? cleaned;
+}
+
+function fuzzyMatch(dbName: string, query: string): boolean {
+  if (!query) return false;
+  const a = dbName.toLowerCase().trim();
+  const b = query.toLowerCase().trim();
+  return a === b || a.includes(b) || b.includes(a);
+}
+
 const stats = [
   { value: '64', label: 'Districts Covered' },
   { value: '500+', label: 'Registered Writers' },
@@ -125,15 +203,28 @@ export default function HomePage() {
   const [lastPage, setLastPage] = useState(1);
   const [total,    setTotal]    = useState(0);
 
+  // Geolocation state
+  const [locating,         setLocating]         = useState(false);
+  const [locError,         setLocError]          = useState<string | null>(null);
+  const [detectedLocation, setDetectedLocation]  = useState<string | null>(null);
+  // Carry a district id through the division useEffect without it getting cleared
+  const pendingGeoDistrictId = useRef<string>('');
+
   useEffect(() => {
     fetch(`${API}/locations/divisions`).then((r) => r.json()).then(setDivisions).catch(() => {});
   }, []);
 
   useEffect(() => {
-    setDistrictId(''); setUpazilaId('');
+    const pendingDist = pendingGeoDistrictId.current;
+    pendingGeoDistrictId.current = '';
+    setDistrictId(pendingDist); // '' for manual change, geo district id otherwise
+    setUpazilaId('');
     setDistricts([]); setUpazilas([]);
     if (!divisionId) return;
-    fetch(`${API}/locations/divisions/${divisionId}/districts`).then((r) => r.json()).then(setDistricts).catch(() => {});
+    fetch(`${API}/locations/divisions/${divisionId}/districts`)
+      .then((r) => r.json())
+      .then(setDistricts)
+      .catch(() => {});
   }, [divisionId]);
 
   useEffect(() => {
@@ -171,6 +262,103 @@ export default function HomePage() {
   function handleReset() {
     setDivisionId(''); setDistrictId(''); setUpazilaId(''); setSearch('');
     setDistricts([]); setUpazilas([]);
+    setDetectedLocation(null); setLocError(null);
+  }
+
+  async function detectLocation() {
+    if (!navigator.geolocation) {
+      setLocError('Geolocation is not supported by your browser.');
+      return;
+    }
+    setLocating(true);
+    setLocError(null);
+    setDetectedLocation(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+
+          // Reverse geocode via OpenStreetMap Nominatim (free, no key)
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`,
+            { headers: { 'User-Agent': 'DeedManager/1.0' } }
+          );
+          const geo = await res.json();
+
+          if (geo.address?.country_code !== 'bd') {
+            setLocError('Your location appears to be outside Bangladesh. Please use the filters to search manually.');
+            return;
+          }
+
+          // Nominatim fields for Bangladesh: state = division, county/city = district
+          const stateRaw  = geo.address?.state ?? '';
+          const countyRaw = geo.address?.county ?? geo.address?.city_district ?? geo.address?.city ?? '';
+
+          const normState  = normaliseName(stateRaw);
+          const normCounty = normaliseName(countyRaw);
+
+          // Match division
+          const matchedDiv = divisions.find((d) => fuzzyMatch(d.name, normState));
+          if (!matchedDiv) {
+            setLocError(`Could not match "${stateRaw}" to a known division. Try selecting manually.`);
+            return;
+          }
+
+          // Fetch districts for that division, match district
+          const distRes  = await fetch(`${API}/locations/divisions/${matchedDiv.id}/districts`);
+          const distList: District[] = await distRes.json();
+          const matchedDist = distList.find((d) => fuzzyMatch(d.name, normCounty));
+
+          // Set detected label shown to user
+          setDetectedLocation(
+            [matchedDist?.name, matchedDiv.name].filter(Boolean).join(', ')
+          );
+
+          // Pass district through the division useEffect via ref
+          pendingGeoDistrictId.current = matchedDist ? String(matchedDist.id) : '';
+          setDivisionId(String(matchedDiv.id));
+
+          document.getElementById('directory')?.scrollIntoView({ behavior: 'smooth' });
+        } catch (e) {
+          console.warn('[Geolocation reverse-geocode error]', e);
+          setLocError('Could not determine your location. Please search manually.');
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        console.warn('[Geolocation error]', err.code, err.message);
+        if (err.code === 1 /* PERMISSION_DENIED */) {
+          setLocError(
+            'Location access was denied. Click the location icon in your browser address bar and choose "Allow", then try again.'
+          );
+        } else if (err.code === 3 /* TIMEOUT */) {
+          setLocError('Location request timed out. Please try again.');
+        } else {
+          /* POSITION_UNAVAILABLE (code 2) — most common cause on macOS/Windows:
+             the browser has no OS-level location permission even before the
+             browser popup appears. */
+          const isMac = /Mac/.test(navigator.userAgent);
+          const isWin = /Win/.test(navigator.userAgent);
+          if (isMac) {
+            setLocError(
+              'Location unavailable. On macOS, go to System Settings → Privacy & Security → Location Services and make sure your browser is enabled.'
+            );
+          } else if (isWin) {
+            setLocError(
+              'Location unavailable. On Windows, go to Settings → Privacy → Location and make sure location access is enabled for your browser.'
+            );
+          } else {
+            setLocError(
+              'Location unavailable. Please make sure location services are enabled for your browser, then try again.'
+            );
+          }
+        }
+        setLocating(false);
+      },
+      { timeout: 10000, maximumAge: 300000 }
+    );
   }
 
   function goPage(p: number) {
@@ -262,10 +450,62 @@ export default function HomePage() {
       {/* ── Directory ── */}
       <section id="directory" className="py-12 sm:py-16 bg-white flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Find a Deed Writer</h2>
-            <p className="text-gray-500 mt-1">Browse licensed deed writers across Bangladesh by location</p>
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Find a Deed Writer</h2>
+              <p className="text-gray-500 mt-1">Browse licensed deed writers across Bangladesh by location</p>
+            </div>
+            <button
+              onClick={detectLocation}
+              disabled={locating}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors flex-shrink-0 cursor-pointer"
+            >
+              {locating ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Detecting...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Use My Location
+                </>
+              )}
+            </button>
           </div>
+
+          {/* Location detection feedback */}
+          {detectedLocation && (
+            <div className="flex items-center gap-2 mb-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Showing writers near <strong>{detectedLocation}</strong></span>
+              <button onClick={handleReset} className="ml-auto text-green-600 hover:text-green-800 text-xs underline flex-shrink-0 cursor-pointer">
+                Clear
+              </button>
+            </div>
+          )}
+          {locError && (
+            <div className="flex items-start gap-2 mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <span>{locError}</span>
+              <button onClick={() => setLocError(null)} className="ml-auto text-red-400 hover:text-red-600 flex-shrink-0 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {/* Filters */}
           <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 sm:p-5 mb-6">

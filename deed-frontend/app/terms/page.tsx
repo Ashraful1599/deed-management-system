@@ -10,7 +10,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'By accessing or using the Deed Manager platform ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service. These Terms apply to all visitors, registered users, and deed writers who access the platform.',
+        body: 'By accessing or using the DolilBD platform ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service. These Terms apply to all visitors, registered users, and deed writers who access the platform.',
       },
     ],
   },
@@ -19,11 +19,11 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'Deed Manager is an online directory and appointment booking platform that connects members of the public with licensed deed writers in Bangladesh. The platform allows deed writers to create public profiles and allows clients to search for writers, view profiles, read reviews, and submit appointment requests.',
+        body: 'DolilBD is an online directory and appointment booking platform that connects members of the public with licensed deed writers in Bangladesh. The platform allows deed writers to create public profiles and allows clients to search for writers, view profiles, read reviews, and submit appointment requests.',
       },
       {
         subtitle: '',
-        body: 'Deed Manager is a facilitating platform only. We are not a law firm, we do not provide legal advice, and we are not a party to any agreement between a client and a deed writer. All legal services are provided solely by the deed writer.',
+        body: 'DolilBD is a facilitating platform only. We are not a law firm, we do not provide legal advice, and we are not a party to any agreement between a client and a deed writer. All legal services are provided solely by the deed writer.',
       },
     ],
   },
@@ -36,7 +36,7 @@ const sections = [
       },
       {
         subtitle: '3.2 Account security',
-        body: 'You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You must notify us immediately at support@deedmanager.com.bd if you suspect any unauthorised access to your account.',
+        body: 'You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You must notify us immediately at support@dolilbd.com if you suspect any unauthorised access to your account.',
       },
       {
         subtitle: '3.3 One account per person',
@@ -57,7 +57,7 @@ const sections = [
       },
       {
         subtitle: '4.2 Profile accuracy',
-        body: 'Deed writers are solely responsible for the accuracy and completeness of their profile information, including their registration number, office name, location, and contact details. Deed Manager may verify this information but is not obligated to do so.',
+        body: 'Deed writers are solely responsible for the accuracy and completeness of their profile information, including their registration number, office name, location, and contact details. DolilBD may verify this information but is not obligated to do so.',
       },
       {
         subtitle: '4.3 Profile removal',
@@ -82,7 +82,7 @@ const sections = [
       },
       {
         subtitle: '5.4 Disputes',
-        body: 'Any disputes arising from a service engagement between a client and a deed writer are between those two parties. Deed Manager is not responsible for the quality, outcome, or legality of any services provided by a deed writer.',
+        body: 'Any disputes arising from a service engagement between a client and a deed writer are between those two parties. DolilBD is not responsible for the quality, outcome, or legality of any services provided by a deed writer.',
       },
     ],
   },
@@ -117,11 +117,11 @@ const sections = [
     content: [
       {
         subtitle: '8.1 Our content',
-        body: 'The Deed Manager platform, including its design, code, logos, and written content, is owned by Deed Manager and protected by applicable intellectual property laws. You may not reproduce, distribute, or create derivative works from our content without our written permission.',
+        body: 'The DolilBD platform, including its design, code, logos, and written content, is owned by DolilBD and protected by applicable intellectual property laws. You may not reproduce, distribute, or create derivative works from our content without our written permission.',
       },
       {
         subtitle: '8.2 Your content',
-        body: 'You retain ownership of content you submit to the platform (such as profile information and reviews). By submitting content, you grant Deed Manager a non-exclusive, royalty-free, worldwide licence to display and distribute that content as part of operating the Service.',
+        body: 'You retain ownership of content you submit to the platform (such as profile information and reviews). By submitting content, you grant DolilBD a non-exclusive, royalty-free, worldwide licence to display and distribute that content as part of operating the Service.',
       },
     ],
   },
@@ -130,7 +130,7 @@ const sections = [
     content: [
       {
         subtitle: '9.1 No legal advice',
-        body: 'Nothing on this platform constitutes legal advice. Deed Manager is a directory service. Always consult a qualified legal professional for advice on your specific legal situation.',
+        body: 'Nothing on this platform constitutes legal advice. DolilBD is a directory service. Always consult a qualified legal professional for advice on your specific legal situation.',
       },
       {
         subtitle: '9.2 No warranty',
@@ -138,7 +138,7 @@ const sections = [
       },
       {
         subtitle: '9.3 Third-party conduct',
-        body: 'Deed Manager is not responsible for the conduct, services, or advice of any deed writer listed on the platform. We do not endorse any specific deed writer.',
+        body: 'DolilBD is not responsible for the conduct, services, or advice of any deed writer listed on the platform. We do not endorse any specific deed writer.',
       },
     ],
   },
@@ -147,7 +147,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'To the maximum extent permitted by applicable law, Deed Manager shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the Service, including but not limited to damages for lost profits, data loss, or goodwill, even if we have been advised of the possibility of such damages.\n\nOur total liability to you for any claim arising from these Terms or your use of the Service shall not exceed BDT 1,000 (one thousand taka).',
+        body: 'To the maximum extent permitted by applicable law, DolilBD shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the Service, including but not limited to damages for lost profits, data loss, or goodwill, even if we have been advised of the possibility of such damages.\n\nOur total liability to you for any claim arising from these Terms or your use of the Service shall not exceed BDT 1,000 (one thousand taka).',
       },
     ],
   },
@@ -174,7 +174,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'For questions about these Terms, please contact us:\n\nDeed Manager\nEmail: support@deedmanager.com.bd\nPhone: +880 1700-000000\nDhaka, Bangladesh',
+        body: 'For questions about these Terms, please contact us:\n\nDolilBD\nEmail: support@dolilbd.com\nPhone: +880 1700-000000\nDhaka, Bangladesh',
       },
     ],
   },
@@ -201,8 +201,8 @@ export default function TermsPage() {
           {/* Intro notice */}
           <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 mb-10">
             <p className="text-sm text-amber-800 leading-relaxed">
-              <strong>Please read these Terms carefully</strong> before using Deed Manager.
-              These Terms form a legally binding agreement between you and Deed Manager.
+              <strong>Please read these Terms carefully</strong> before using DolilBD.
+              These Terms form a legally binding agreement between you and DolilBD.
               By accessing or using our platform, you confirm that you have read,
               understood, and agreed to be bound by these Terms.
             </p>

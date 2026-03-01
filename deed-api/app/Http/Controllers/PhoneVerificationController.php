@@ -30,8 +30,8 @@ class PhoneVerificationController extends Controller
             ->whereNull('verified_at')
             ->update(['expires_at' => now()]);
 
-        // Generate 6-digit OTP
-        $otp  = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        // Generate 4-digit OTP
+        $otp  = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
         $hash = hash('sha256', $otp);
 
         PhoneOtpVerification::create([
@@ -43,7 +43,7 @@ class PhoneVerificationController extends Controller
 
         $sent = $this->sms->send(
             $user->phone,
-            "Your Deed Manager OTP is {$otp}. Valid for 15 minutes."
+            "Your DolilBD OTP is {$otp}. Valid for 15 minutes."
         );
 
         if (!$sent) {
@@ -58,7 +58,7 @@ class PhoneVerificationController extends Controller
      */
     public function verify(Request $request)
     {
-        $request->validate(['code' => 'required|string|size:6']);
+        $request->validate(['code' => 'required|string|size:4']);
 
         $user = $request->user();
 

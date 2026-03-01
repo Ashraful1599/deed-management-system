@@ -51,10 +51,10 @@ export default function AboutPage() {
       <section className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 sm:py-20 text-center">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-            About Deed Manager
+            About DolilBD
           </h1>
           <p className="text-gray-500 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-            Deed Manager is Bangladesh&apos;s first online directory for licensed deed writers,
+            DolilBD is Bangladesh&apos;s first online directory for licensed deed writers,
             making it easy for citizens to find and book verified legal professionals
             for property deeds and legal documents.
           </p>
@@ -74,7 +74,7 @@ export default function AboutPage() {
                 properly registered.
               </p>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Deed Manager changes that. We built a central platform where all licensed deed
+                DolilBD changes that. We built a central platform where all licensed deed
                 writers can list their profile, and where citizens can search, compare, read reviews,
                 and book appointments — from anywhere, at any time.
               </p>
@@ -112,7 +112,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Why Choose Us</h2>
-            <p className="text-gray-500 mt-2">What sets Deed Manager apart</p>
+            <p className="text-gray-500 mt-2">What sets DolilBD apart</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((v) => (

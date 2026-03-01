@@ -202,7 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className="w-64 bg-gray-900 text-white flex flex-col flex-shrink-0">
         <div className="p-6 border-b border-gray-700">
-          <h1 className="text-xl font-bold text-white">Deed Manager</h1>
+          <h1 className="text-xl font-bold text-white">Dolil<span className="text-blue-300">BD</span></h1>
           <p className="text-xs text-gray-400 mt-1">Legal Document System</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">

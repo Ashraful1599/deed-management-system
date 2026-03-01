@@ -14,7 +14,7 @@
           <!-- Header -->
           <tr>
             <td style="background:#2563eb;padding:24px 32px;">
-              <p style="margin:0;color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Deed Manager</p>
+              <p style="margin:0;color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">DolilBD</p>
             </td>
           </tr>
 
@@ -54,7 +54,7 @@
             <td style="padding:16px 32px;border-top:1px solid #f3f4f6;">
               <p style="margin:0;font-size:12px;color:#9ca3af;">
                 You received this because you are a party to this deed.
-                <br>Deed Manager · Legal Document System
+                <br>DolilBD · Legal Document System
               </p>
             </td>
           </tr>

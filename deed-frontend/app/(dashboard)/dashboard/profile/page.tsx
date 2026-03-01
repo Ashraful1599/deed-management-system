@@ -192,16 +192,16 @@ function PhoneVerification({ phone, verifiedAt, onVerified }: {
             <input
               type="text"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={4}
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
               placeholder="000000"
               className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
             <button
               type="submit"
-              disabled={otp.length !== 6 || step === 'verifying'}
+              disabled={otp.length !== 4 || step === 'verifying'}
               className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 transition-colors"
             >
               {step === 'verifying' ? 'Verifying…' : 'Verify'}
