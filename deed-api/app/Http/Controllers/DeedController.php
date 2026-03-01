@@ -3,8 +3,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Deed\StoreDeedRequest;
 use App\Http\Requests\Deed\UpdateDeedRequest;
 use App\Http\Resources\DeedResource;
+use App\Mail\DeedMail;
 use App\Models\Deed;
+use App\Models\DeedActivity;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class DeedController extends Controller {
@@ -80,32 +83,34 @@ class DeedController extends Controller {
         ));
         $deed->load(['creator', 'assignee']);
 
-        // Notify assignee
+        // Activity log
+        DeedActivity::log($deed->id, $request->user()->id, 'deed_created',
+            $request->user()->name . ' created this deed.');
+
+        // Notify + email assignee
         if ($deed->assigned_to) {
+            $msg = $request->user()->name . ' assigned a deed to you: ' . $deed->title;
             Notification::create([
                 'user_id' => $deed->assigned_to,
                 'type'    => 'deed_assigned',
-                'data'    => [
-                    'deed_id'    => $deed->id,
-                    'deed_title' => $deed->title,
-                    'actor_name' => $request->user()->name,
-                    'message'    => $request->user()->name . ' assigned a deed to you: ' . $deed->title,
-                ],
+                'data'    => ['deed_id' => $deed->id, 'deed_title' => $deed->title, 'actor_name' => $request->user()->name, 'message' => $msg],
             ]);
+            DeedActivity::log($deed->id, $request->user()->id, 'deed_assigned',
+                $request->user()->name . ' assigned the deed to ' . $deed->assignee->name . '.',
+                ['assignee_name' => $deed->assignee->name]);
+            if ($assignee = User::find($deed->assigned_to)) {
+                DeedMail::sendTo($assignee, 'Deed Assigned: ' . $deed->title, $msg, $deed);
+            }
         }
 
         // Notify admins when a non-admin creates a deed
         if (!$request->user()->isAdmin()) {
-            \App\Models\User::where('role', 'admin')->get()->each(function ($admin) use ($deed, $request) {
+            User::where('role', 'admin')->get()->each(function ($admin) use ($deed, $request) {
                 Notification::create([
                     'user_id' => $admin->id,
                     'type'    => 'deed_created',
-                    'data'    => [
-                        'deed_id'    => $deed->id,
-                        'deed_title' => $deed->title,
-                        'actor_name' => $request->user()->name,
-                        'message'    => $request->user()->name . ' created a new deed: ' . $deed->title,
-                    ],
+                    'data'    => ['deed_id' => $deed->id, 'deed_title' => $deed->title, 'actor_name' => $request->user()->name,
+                        'message' => $request->user()->name . ' created a new deed: ' . $deed->title],
                 ]);
             });
         }
@@ -137,26 +142,31 @@ class DeedController extends Controller {
         $oldAssignee = $deed->assigned_to;
         $deed->update($validated);
 
-        // Notify on status change
+        // Notify + log + email on status change
         if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
-            $this->notifyParties($deed, $request->user(), 'status_changed',
-                $request->user()->name . ' changed deed status to "' . $deed->status . '": ' . $deed->title
-            );
+            $msg = $request->user()->name . ' changed deed status to "' . $deed->status . '": ' . $deed->title;
+            $this->notifyParties($deed, $request->user(), 'status_changed', $msg);
+            DeedActivity::log($deed->id, $request->user()->id, 'status_changed',
+                $request->user()->name . ' changed status from "' . $oldStatus . '" to "' . $deed->status . '".',
+                ['from' => $oldStatus, 'to' => $deed->status]);
+            $this->emailParties($deed, $request->user(), 'Status Changed: ' . $deed->title, $msg);
         }
 
-        // Notify on new assignment
+        // Notify + log + email on new assignment
         if (isset($validated['assigned_to']) && $validated['assigned_to'] != $oldAssignee) {
             if ($deed->assigned_to) {
+                $msg = $request->user()->name . ' assigned a deed to you: ' . $deed->title;
                 Notification::create([
                     'user_id' => $deed->assigned_to,
                     'type'    => 'deed_assigned',
-                    'data'    => [
-                        'deed_id'    => $deed->id,
-                        'deed_title' => $deed->title,
-                        'actor_name' => $request->user()->name,
-                        'message'    => $request->user()->name . ' assigned a deed to you: ' . $deed->title,
-                    ],
+                    'data'    => ['deed_id' => $deed->id, 'deed_title' => $deed->title, 'actor_name' => $request->user()->name, 'message' => $msg],
                 ]);
+                DeedActivity::log($deed->id, $request->user()->id, 'deed_assigned',
+                    $request->user()->name . ' assigned the deed to ' . ($deed->assignee->name ?? ''),
+                    ['assignee_name' => $deed->assignee?->name]);
+                if ($assignee = User::find($deed->assigned_to)) {
+                    DeedMail::sendTo($assignee, 'Deed Assigned: ' . $deed->title, $msg, $deed);
+                }
             }
         }
 
@@ -170,9 +180,32 @@ class DeedController extends Controller {
         return response()->json(['message' => 'Deed deleted']);
     }
 
+    public function activities(Request $request, Deed $deed) {
+        $this->authorizeAccess($deed, $request->user());
+        $activities = $deed->activities()->with('user')->orderByDesc('created_at')->get();
+        return response()->json($activities->map(fn($a) => [
+            'id'          => $a->id,
+            'action'      => $a->action,
+            'description' => $a->description,
+            'meta'        => $a->meta,
+            'actor'       => $a->user ? ['id' => $a->user->id, 'name' => $a->user->name] : null,
+            'created_at'  => $a->created_at,
+        ]));
+    }
+
     private function authorizeAccess(Deed $deed, $user) {
         if (!$deed->canAccess($user)) {
             abort(403, 'Access denied');
+        }
+    }
+
+    private function emailParties(Deed $deed, $actor, string $subject, string $message): void {
+        $targets = collect([$deed->created_by, $deed->assigned_to])
+            ->filter(fn($id) => $id && $id !== $actor->id)->unique();
+        foreach ($targets as $userId) {
+            if ($recipient = User::find($userId)) {
+                DeedMail::sendTo($recipient, $subject, $message, $deed);
+            }
         }
     }
 

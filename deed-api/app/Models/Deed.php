@@ -41,6 +41,11 @@ class Deed extends Model
         return $this->hasMany(DeedReview::class);
     }
 
+    public function activities()
+    {
+        return $this->hasMany(DeedActivity::class);
+    }
+
     /**
      * Check if a user can access this deed.
      */

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\DeedReviewResource;
+use App\Mail\DeedMail;
 use App\Models\Deed;
+use App\Models\DeedActivity;
 use App\Models\DeedReview;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class DeedReviewController extends Controller
@@ -60,17 +63,20 @@ class DeedReviewController extends Controller
 
         $review->load('reviewer');
 
+        $msgText = $user->name . ' left a ' . $data['rating'] . '-star review on: ' . $deed->title;
+        DeedActivity::log($deed->id, $user->id, 'review_added',
+            $user->name . ' left a ' . $data['rating'] . '-star review.',
+            ['rating' => $data['rating']]);
+
         if ($deed->assigned_to) {
             Notification::create([
                 'user_id' => $deed->assigned_to,
                 'type'    => 'deed_reviewed',
-                'data'    => [
-                    'deed_id'    => $deed->id,
-                    'deed_title' => $deed->title,
-                    'actor_name' => $user->name,
-                    'message'    => $user->name . ' left a ' . $data['rating'] . '-star review on: ' . $deed->title,
-                ],
+                'data'    => ['deed_id' => $deed->id, 'deed_title' => $deed->title, 'actor_name' => $user->name, 'message' => $msgText],
             ]);
+            if ($assignee = User::find($deed->assigned_to)) {
+                DeedMail::sendTo($assignee, 'New Review: ' . $deed->title, $msgText, $deed);
+            }
         }
 
         return new DeedReviewResource($review);
@@ -97,17 +103,18 @@ class DeedReviewController extends Controller
         $review->load('reviewer');
 
         $deed = $review->deed;
-        if ($deed && $deed->assigned_to) {
-            Notification::create([
-                'user_id' => $deed->assigned_to,
-                'type'    => 'deed_reviewed',
-                'data'    => [
-                    'deed_id'    => $deed->id,
-                    'deed_title' => $deed->title,
-                    'actor_name' => $user->name,
-                    'message'    => $user->name . ' updated their review on: ' . $deed->title,
-                ],
-            ]);
+        if ($deed) {
+            DeedActivity::log($deed->id, $user->id, 'review_updated',
+                $user->name . ' updated their review to ' . $data['rating'] . ' stars.',
+                ['rating' => $data['rating']]);
+            if ($deed->assigned_to) {
+                $msgText = $user->name . ' updated their review on: ' . $deed->title;
+                Notification::create([
+                    'user_id' => $deed->assigned_to,
+                    'type'    => 'deed_reviewed',
+                    'data'    => ['deed_id' => $deed->id, 'deed_title' => $deed->title, 'actor_name' => $user->name, 'message' => $msgText],
+                ]);
+            }
         }
 
         return new DeedReviewResource($review);

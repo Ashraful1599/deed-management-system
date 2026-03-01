@@ -122,6 +122,9 @@ export default function DeedDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
 
+  // Activity timeline
+  const [activities, setActivities] = useState<{ id: number; action: string; description: string; meta: Record<string, unknown> | null; actor: { id: number; name: string } | null; created_at: string }[]>([]);
+
   const allowedTransitions = getAllowedTransitions(deed?.status ?? '', currentUser, deed);
   const canChangeStatus = allowedTransitions.length > 0;
 
@@ -161,7 +164,13 @@ export default function DeedDetailPage() {
       .catch(() => {});
   }
 
-  useEffect(() => { loadDeed(); loadComments(); loadReviews(); }, [id]);
+  function loadActivities() {
+    api.get(`/deeds/${id}/activities`)
+      .then((r) => setActivities(r.data))
+      .catch(() => {});
+  }
+
+  useEffect(() => { loadDeed(); loadComments(); loadReviews(); loadActivities(); }, [id]);
 
   function startEditReview(review: Review) {
     setEditingReview(review);
@@ -214,6 +223,7 @@ export default function DeedDetailPage() {
       const res = await api.put(`/deeds/${id}`, { status: newStatus });
       setDeed(res.data.data);
       toast.success(`Status changed to ${newStatus}`);
+      loadActivities();
     } catch {
       toast.error('Failed to change status');
     } finally {
@@ -235,6 +245,7 @@ export default function DeedDetailPage() {
       setComments((prev) => [...prev, res.data.data]);
       setCommentBody('');
       setCommentFile(null);
+      loadActivities();
     } catch {
       toast.error('Failed to post comment');
     } finally {
@@ -525,6 +536,28 @@ export default function DeedDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Activity Timeline */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+          <h3 className="font-semibold text-gray-800 text-sm">Activity Timeline</h3>
+        </div>
+        {activities.length === 0 ? (
+          <p className="px-6 py-8 text-sm text-gray-400 text-center">No activity recorded yet.</p>
+        ) : (
+          <div className="px-6 py-5">
+            <ol className="relative border-l border-gray-200 space-y-5">
+              {activities.map((a) => (
+                <li key={a.id} className="ml-4">
+                  <div className="absolute -left-1.5 mt-1 w-3 h-3 rounded-full border-2 border-white bg-blue-400" />
+                  <p className="text-sm text-gray-800">{a.description}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{new Date(a.created_at).toLocaleString()}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
       </div>
     </div>
   );

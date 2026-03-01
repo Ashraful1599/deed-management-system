@@ -62,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Deeds
     Route::apiResource('deeds', DeedController::class);
+    Route::get('/deeds/{deed}/activities', [DeedController::class, 'activities']);
 
     // Comments (nested under deed)
     Route::get('/deeds/{deed}/comments',    [CommentController::class, 'index']);

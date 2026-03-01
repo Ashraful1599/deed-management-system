@@ -1,9 +1,12 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Resources\CommentResource;
+use App\Mail\DeedMail;
 use App\Models\Comment;
 use App\Models\Deed;
+use App\Models\DeedActivity;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -45,22 +48,27 @@ class CommentController extends Controller {
         $comment->save();
         $comment->load('user');
 
-        // Notify other party
+        $isAttachmentOnly = $comment->attachment_path && empty($data['body']);
+        $msgText = $request->user()->name . ($isAttachmentOnly ? ' attached a file on: ' : ' commented on: ') . $deed->title;
+
+        // Activity log
+        DeedActivity::log($deed->id, $request->user()->id,
+            $isAttachmentOnly ? 'file_attached' : 'comment_added',
+            $request->user()->name . ($isAttachmentOnly ? ' attached a file.' : ' added a comment.'),
+            $isAttachmentOnly ? ['filename' => $comment->attachment_name] : []);
+
+        // Notify + email other parties
         $targets = collect([$deed->created_by, $deed->assigned_to])
             ->filter(fn($id) => $id && $id !== $request->user()->id)->unique();
         foreach ($targets as $userId) {
             Notification::create([
                 'user_id' => $userId,
                 'type'    => 'comment_added',
-                'data'    => [
-                    'deed_id'    => $deed->id,
-                    'deed_title' => $deed->title,
-                    'actor_name' => $request->user()->name,
-                    'message'    => $request->user()->name . ($comment->attachment_path && empty($data['body'])
-                        ? ' attached a file on: '
-                        : ' commented on: ') . $deed->title,
-                ],
+                'data'    => ['deed_id' => $deed->id, 'deed_title' => $deed->title, 'actor_name' => $request->user()->name, 'message' => $msgText],
             ]);
+            if ($recipient = User::find($userId)) {
+                DeedMail::sendTo($recipient, 'New Comment: ' . $deed->title, $msgText, $deed);
+            }
         }
 
         return new CommentResource($comment);
