@@ -1,0 +1,3 @@
+[submodule "dolil_flutter"]
+	path = dolil_flutter
+	url = https://github.com/Ashraful1599/dolil_flutter.git
