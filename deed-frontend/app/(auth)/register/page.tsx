@@ -202,7 +202,14 @@ function RegisterForm() {
   if (step === 'phone-verified') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
+        <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-block">
+            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
+            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
+          </Link>
+        </div>
+        <div className="bg-white rounded-lg shadow p-8 w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -217,6 +224,7 @@ function RegisterForm() {
             Sign In
           </Link>
         </div>
+        </div>
       </div>
     );
   }
@@ -225,7 +233,14 @@ function RegisterForm() {
   if (step === 'phone-otp') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
+        <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-block">
+            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
+            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
+          </Link>
+        </div>
+        <div className="bg-white rounded-lg shadow p-8 w-full text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3" />
@@ -277,6 +292,7 @@ function RegisterForm() {
             Skip for now →
           </button>
         </div>
+        </div>
       </div>
     );
   }
@@ -285,7 +301,14 @@ function RegisterForm() {
   if (step === 'email-check') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow p-8 w-full max-w-md text-center">
+        <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-block">
+            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
+            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
+          </Link>
+        </div>
+        <div className="bg-white rounded-lg shadow p-8 w-full text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
@@ -308,13 +331,21 @@ function RegisterForm() {
             Back to Sign In
           </Link>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow p-8 w-full max-w-lg">
+      <div className="w-full max-w-lg">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-block">
+            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
+            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
+          </Link>
+        </div>
+      <div className="bg-white rounded-lg shadow p-8 w-full">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Account</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Avatar picker */}
@@ -473,6 +504,7 @@ function RegisterForm() {
           Already have an account?{' '}
           <Link href="/login" className="text-blue-600 hover:underline">Sign In</Link>
         </p>
+      </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/auth';
@@ -9,6 +9,14 @@ import { setUser } from '@/lib/store/slices/userSlice';
 import { toast } from 'react-toastify';
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginInner />
+    </Suspense>
+  );
+}
+
+function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
@@ -46,7 +54,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow p-8 w-full max-w-md">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-block">
+            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
+            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
+          </Link>
+        </div>
+      <div className="bg-white rounded-lg shadow p-8 w-full">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
           <p className="text-sm text-gray-500 mt-1">Use your email or phone number</p>
@@ -133,6 +148,7 @@ export default function LoginPage() {
           </div>
           <p className="text-[11px] text-gray-400 mt-2 text-center">Password: <span className="font-mono font-semibold text-gray-600">12345678</span> · Click a row to fill in</p>
         </div>
+      </div>
       </div>
     </div>
   );

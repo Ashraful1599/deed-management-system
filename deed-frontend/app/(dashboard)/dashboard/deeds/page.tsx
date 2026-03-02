@@ -38,7 +38,7 @@ const statusLabels: Record<string, string> = {
 
 const STATUSES = ['', 'draft', 'under_review', 'completed', 'archived'];
 
-type SortKey = 'id' | 'title' | 'status' | 'created_at' | 'creator' | 'assignee';
+type SortKey = 'id' | 'deed_number' | 'title' | 'status' | 'created_at' | 'creator' | 'assignee';
 type SortDir = 'asc' | 'desc';
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
