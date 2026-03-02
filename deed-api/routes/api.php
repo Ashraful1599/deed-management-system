@@ -16,6 +16,9 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\UserSearchController;
 use Illuminate\Support\Facades\Route;
 
+// Health check
+Route::get('/health', fn() => response()->json(['status' => 'ok', 'timestamp' => now()]));
+
 // Public location endpoints
 Route::get('/locations/divisions', [LocationController::class, 'divisions']);
 Route::get('/locations/divisions/{division}/districts', [LocationController::class, 'districtsByDivision']);
