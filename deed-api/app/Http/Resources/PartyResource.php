@@ -15,7 +15,7 @@ class PartyResource extends JsonResource {
             'state'    => $this->state,
             'zip_code' => $this->zip_code,
             'notes'    => $this->notes,
-            'role'     => $this->whenPivotLoaded('deed_party', fn() => $this->pivot->role),
+            'role'     => $this->whenPivotLoaded('dolil_party', fn() => $this->pivot->role),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -38,14 +38,14 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Sample Deed Writer — district_id=18 (Dhaka), upazila_id=149 (Savar), union_id=13 (Savar Union)
+        // Sample Dolil Writer — district_id=18 (Dhaka), upazila_id=149 (Savar), union_id=13 (Savar Union)
         User::updateOrCreate(
             ['email' => 'writer@deed.com'],
             [
                 'name'                => 'Jane Writer',
                 'phone'               => '2222222222',
                 'password'            => Hash::make('12345678'),
-                'role'                => 'deed_writer',
+                'role'                => 'dolil_writer',
                 'status'              => 'active',
                 'email_verified_at'   => $verified,
                 'registration_number' => 'DW-2024-001',

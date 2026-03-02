@@ -2,14 +2,14 @@
 namespace App\Http\Controllers;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
-use App\Http\Resources\DeedListResource;
+use App\Http\Resources\DolilListResource;
 use App\Http\Resources\PropertyResource;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
 class PropertyController extends Controller {
     public function index(Request $request) {
-        $query = Property::withCount('deeds');
+        $query = Property::withCount('dolils');
         if ($request->filled('search')) {
             $term = $request->search;
             $query->where(function ($q) use ($term) {
@@ -31,7 +31,7 @@ class PropertyController extends Controller {
     }
 
     public function show(Property $property) {
-        $property->loadCount('deeds');
+        $property->loadCount('dolils');
         return new PropertyResource($property);
     }
 
@@ -46,12 +46,12 @@ class PropertyController extends Controller {
     }
 
     public function chainOfTitle(Property $property) {
-        $deeds = $property->deeds()
+        $dolils = $property->dolils()
             ->with(['grantors', 'grantees', 'documents'])
             ->withCount('documents')
             ->orderBy('recording_date', 'asc')
             ->orderBy('effective_date', 'asc')
             ->get();
-        return DeedListResource::collection($deeds);
+        return DolilListResource::collection($dolils);
     }
 }

@@ -164,7 +164,7 @@ export default function ContactPage() {
                       <select name="subject" value={form.subject} onChange={handleChange} className={inputCls}>
                         <option value="">Select a topic</option>
                         <option value="general">General Enquiry</option>
-                        <option value="writer">Register as Deed Writer</option>
+                        <option value="writer">Register as Dolil Writer</option>
                         <option value="complaint">Complaint</option>
                         <option value="technical">Technical Issue</option>
                         <option value="other">Other</option>

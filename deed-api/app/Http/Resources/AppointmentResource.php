@@ -18,9 +18,9 @@ class AppointmentResource extends JsonResource
             'message'        => $this->message,
             'status'         => $this->status,
             'created_at'     => $this->created_at,
-            'deed_writer'    => $this->whenLoaded('deedWriter', fn () => [
-                'id'   => $this->deedWriter->id,
-                'name' => $this->deedWriter->name,
+            'dolil_writer'    => $this->whenLoaded('dolilWriter', fn () => [
+                'id'   => $this->dolilWriter->id,
+                'name' => $this->dolilWriter->name,
             ]),
             'client'         => $this->whenLoaded('client', fn () => $this->client ? [
                 'id'   => $this->client->id,

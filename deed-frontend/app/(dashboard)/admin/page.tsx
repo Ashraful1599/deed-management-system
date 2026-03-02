@@ -15,7 +15,7 @@ interface RecentUser {
   created_at: string;
 }
 
-interface RecentDeed {
+interface RecentDolil {
   id: number;
   title: string;
   status: string;
@@ -30,23 +30,23 @@ interface AdminStats {
   users_by_status: Record<string, number>;
   users_new_today: number;
   users_new_this_week: number;
-  deeds_total: number;
-  deeds_by_status: Record<string, number>;
-  deeds_new_today: number;
-  deeds_new_this_week: number;
+  dolils_total: number;
+  dolils_by_status: Record<string, number>;
+  dolils_new_today: number;
+  dolils_new_this_week: number;
   recent_users: RecentUser[];
-  recent_deeds: RecentDeed[];
+  recent_dolils: RecentDolil[];
 }
 
 const roleColors: Record<string, string> = {
   admin:       'bg-red-100 text-red-700',
-  deed_writer: 'bg-purple-100 text-purple-700',
+  dolil_writer: 'bg-purple-100 text-purple-700',
   user:        'bg-gray-100 text-gray-600',
 };
 
 const roleLabels: Record<string, string> = {
   admin:       'Admin',
-  deed_writer: 'Deed Writer',
+  dolil_writer: 'Dolil Writer',
   user:        'User',
 };
 
@@ -100,8 +100,8 @@ export default function AdminPage() {
           <Link href="/admin/users" className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors">
             Manage Users
           </Link>
-          <Link href="/admin/deeds" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
-            Manage Deeds
+          <Link href="/admin/dolils" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+            Manage Dolils
           </Link>
         </div>
       </div>
@@ -109,12 +109,12 @@ export default function AdminPage() {
       {/* Top stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard title="Total Users"  value={stats.users_total} icon={<IconUsers />}    color="blue" />
-        <StatCard title="Total Deeds"  value={stats.deeds_total} icon={<IconDocument />} color="purple" />
+        <StatCard title="Total Dolils"  value={stats.dolils_total} icon={<IconDocument />} color="purple" />
         <StatCard title="New Users This Week"  value={stats.users_new_this_week} icon={<IconUsers />}    color="green" />
-        <StatCard title="New Deeds This Week"  value={stats.deeds_new_this_week} icon={<IconDocument />} color="yellow" />
+        <StatCard title="New Dolils This Week"  value={stats.dolils_new_this_week} icon={<IconDocument />} color="yellow" />
       </div>
 
-      {/* Users + Deeds breakdown */}
+      {/* Users + Dolils breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Users breakdown */}
@@ -130,8 +130,8 @@ export default function AdminPage() {
                 <p className="text-xs text-gray-500 mt-0.5">Regular</p>
               </div>
               <div className="bg-purple-50 rounded-lg py-3">
-                <p className="text-xl font-bold text-purple-700">{stats.users_by_role?.deed_writer ?? 0}</p>
-                <p className="text-xs text-purple-500 mt-0.5">Deed Writers</p>
+                <p className="text-xl font-bold text-purple-700">{stats.users_by_role?.dolil_writer ?? 0}</p>
+                <p className="text-xs text-purple-500 mt-0.5">Dolil Writers</p>
               </div>
               <div className="bg-red-50 rounded-lg py-3">
                 <p className="text-xl font-bold text-red-700">{stats.users_by_role?.admin ?? 0}</p>
@@ -149,33 +149,33 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Deeds breakdown */}
+        {/* Dolils breakdown */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Deeds</h3>
-            <Link href="/admin/deeds" className="text-xs text-blue-600 hover:underline">Manage →</Link>
+            <h3 className="font-semibold text-gray-800">Dolils</h3>
+            <Link href="/admin/dolils" className="text-xs text-blue-600 hover:underline">Manage →</Link>
           </div>
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-2 gap-3 text-center">
               <div className="bg-gray-50 rounded-lg py-3">
-                <p className="text-xl font-bold text-gray-700">{stats.deeds_by_status?.draft ?? 0}</p>
+                <p className="text-xl font-bold text-gray-700">{stats.dolils_by_status?.draft ?? 0}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Draft</p>
               </div>
               <div className="bg-yellow-50 rounded-lg py-3">
-                <p className="text-xl font-bold text-yellow-700">{stats.deeds_by_status?.under_review ?? 0}</p>
+                <p className="text-xl font-bold text-yellow-700">{stats.dolils_by_status?.under_review ?? 0}</p>
                 <p className="text-xs text-yellow-500 mt-0.5">Under Review</p>
               </div>
               <div className="bg-blue-50 rounded-lg py-3">
-                <p className="text-xl font-bold text-blue-700">{stats.deeds_by_status?.completed ?? 0}</p>
+                <p className="text-xl font-bold text-blue-700">{stats.dolils_by_status?.completed ?? 0}</p>
                 <p className="text-xs text-blue-500 mt-0.5">Completed</p>
               </div>
               <div className="bg-green-50 rounded-lg py-3">
-                <p className="text-xl font-bold text-green-700">{stats.deeds_by_status?.archived ?? 0}</p>
+                <p className="text-xl font-bold text-green-700">{stats.dolils_by_status?.archived ?? 0}</p>
                 <p className="text-xs text-green-500 mt-0.5">Archived</p>
               </div>
             </div>
             <div className="flex items-center justify-end text-xs text-gray-400 pt-2 border-t border-gray-100">
-              +{stats.deeds_new_today} today
+              +{stats.dolils_new_today} today
             </div>
           </div>
         </div>
@@ -210,20 +210,20 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Recent deeds */}
+        {/* Recent dolils */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Recent Deeds</h3>
-            <Link href="/admin/deeds" className="text-xs text-blue-600 hover:underline">View all →</Link>
+            <h3 className="font-semibold text-gray-800">Recent Dolils</h3>
+            <Link href="/admin/dolils" className="text-xs text-blue-600 hover:underline">View all →</Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {stats.recent_deeds.length === 0 && (
-              <p className="px-6 py-6 text-sm text-gray-400 text-center">No deeds yet</p>
+            {stats.recent_dolils.length === 0 && (
+              <p className="px-6 py-6 text-sm text-gray-400 text-center">No dolils yet</p>
             )}
-            {stats.recent_deeds.map((d) => (
+            {stats.recent_dolils.map((d) => (
               <div key={d.id} className="px-6 py-3 flex items-center justify-between">
                 <div>
-                  <Link href={`/dashboard/deeds/${d.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                  <Link href={`/dashboard/dolils/${d.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
                     {d.title}
                   </Link>
                   <p className="text-xs text-gray-400 mt-0.5">

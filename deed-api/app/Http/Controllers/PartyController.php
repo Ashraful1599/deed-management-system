@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 use App\Http\Requests\Party\StorePartyRequest;
 use App\Http\Requests\Party\UpdatePartyRequest;
-use App\Http\Resources\DeedListResource;
+use App\Http\Resources\DolilListResource;
 use App\Http\Resources\PartyResource;
 use App\Models\Party;
 use Illuminate\Http\Request;
@@ -39,12 +39,12 @@ class PartyController extends Controller {
         return response()->json(['message' => 'Party deleted']);
     }
 
-    public function deeds(Party $party) {
-        $deeds = $party->deeds()
+    public function dolils(Party $party) {
+        $dolils = $party->dolils()
             ->with(['property', 'grantors', 'grantees'])
             ->withCount('documents')
             ->orderBy('recording_date', 'desc')
             ->paginate(20);
-        return DeedListResource::collection($deeds);
+        return DolilListResource::collection($dolils);
     }
 }

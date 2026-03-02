@@ -6,7 +6,7 @@ class CommentResource extends JsonResource {
     public function toArray(Request $request): array {
         return [
             'id'              => $this->id,
-            'deed_id'         => $this->deed_id,
+            'dolil_id'        => $this->dolil_id,
             'user'            => new UserResource($this->whenLoaded('user')),
             'body'            => $this->body,
             'attachment_name' => $this->attachment_name,

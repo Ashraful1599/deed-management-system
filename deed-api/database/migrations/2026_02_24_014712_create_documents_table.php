@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('deed_id')->constrained('deeds')->cascadeOnDelete();
+            $table->foreignId('dolil_id')->constrained('dolils')->cascadeOnDelete();
             $table->string('original_filename');
             $table->string('stored_filename');
             $table->string('disk_path');

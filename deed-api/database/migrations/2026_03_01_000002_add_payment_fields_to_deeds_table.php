@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('deeds', function (Blueprint $table) {
+        Schema::table('dolils', function (Blueprint $table) {
             $table->decimal('agreement_amount', 12, 2)->nullable()->after('notes');
             $table->enum('payment_status', ['pending', 'partial', 'completed', 'overdue'])->default('pending')->after('agreement_amount');
         });
@@ -15,7 +15,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('deeds', function (Blueprint $table) {
+        Schema::table('dolils', function (Blueprint $table) {
             $table->dropColumn(['agreement_amount', 'payment_status']);
         });
     }

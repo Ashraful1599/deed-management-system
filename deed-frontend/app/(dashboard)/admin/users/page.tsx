@@ -19,7 +19,7 @@ interface User {
 
 const roleColors: Record<string, string> = {
   admin: 'bg-red-100 text-red-700',
-  deed_writer: 'bg-purple-100 text-purple-700',
+  dolil_writer: 'bg-purple-100 text-purple-700',
   user: 'bg-gray-100 text-gray-700',
 };
 
@@ -103,7 +103,7 @@ export default function AdminUsersPage() {
         >
           <option value="">All Roles</option>
           <option value="user">User</option>
-          <option value="deed_writer">Deed Writer</option>
+          <option value="dolil_writer">Dolil Writer</option>
           <option value="admin">Admin</option>
         </select>
         <select
@@ -156,7 +156,7 @@ export default function AdminUsersPage() {
                         className="border border-gray-300 rounded px-2 py-1 text-xs"
                       >
                         <option value="user">User</option>
-                        <option value="deed_writer">Deed Writer</option>
+                        <option value="dolil_writer">Dolil Writer</option>
                         <option value="admin">Admin</option>
                       </select>
                     ) : (

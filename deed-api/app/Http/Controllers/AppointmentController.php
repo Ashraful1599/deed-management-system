@@ -11,12 +11,12 @@ use Illuminate\Http\Request;
 class AppointmentController extends Controller
 {
     /**
-     * Public — anyone can book an appointment with a deed writer.
+     * Public — anyone can book an appointment with a dolil writer.
      */
     public function store(Request $request, User $user)
     {
-        if ($user->role !== 'deed_writer' || $user->status !== 'active') {
-            abort(404, 'Deed writer not found.');
+        if ($user->role !== 'dolil_writer' || $user->status !== 'active') {
+            abort(404, 'Dolil writer not found.');
         }
 
         $data = $request->validate([
@@ -27,7 +27,7 @@ class AppointmentController extends Controller
             'message'        => 'nullable|string|max:500',
         ]);
 
-        $data['deed_writer_id'] = $user->id;
+        $data['dolil_writer_id'] = $user->id;
         $data['client_id']      = auth('sanctum')->id();
 
         $appointment = Appointment::create($data);
@@ -54,12 +54,12 @@ class AppointmentController extends Controller
     public function index(Request $request)
     {
         $user  = $request->user();
-        $query = Appointment::with(['deedWriter', 'client'])->latest();
+        $query = Appointment::with(['dolilWriter', 'client'])->latest();
 
         if ($user->role === 'admin') {
             // Admin sees all
-        } elseif ($user->role === 'deed_writer') {
-            $query->where('deed_writer_id', $user->id);
+        } elseif ($user->role === 'dolil_writer') {
+            $query->where('dolil_writer_id', $user->id);
         } else {
             // Regular user sees their own bookings
             $query->where('client_id', $user->id);
@@ -79,7 +79,7 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isAdmin() && !($user->role === 'deed_writer' && $appointment->deed_writer_id === $user->id)) {
+        if (!$user->isAdmin() && !($user->role === 'dolil_writer' && $appointment->dolil_writer_id === $user->id)) {
             abort(403, 'Access denied.');
         }
 
@@ -88,7 +88,7 @@ class AppointmentController extends Controller
         ]);
 
         $appointment->update($data);
-        $appointment->load(['deedWriter', 'client']);
+        $appointment->load(['dolilWriter', 'client']);
 
         // Notify client if logged in
         if ($appointment->client_id) {
@@ -97,10 +97,10 @@ class AppointmentController extends Controller
                 'type'    => 'appointment_updated',
                 'data'    => [
                     'appointment_id'  => $appointment->id,
-                    'deed_writer_name' => $appointment->deedWriter->name,
+                    'dolil_writer_name' => $appointment->dolilWriter->name,
                     'status'          => $appointment->status,
                     'preferred_date'  => $appointment->preferred_date->format('Y-m-d'),
-                    'message'         => 'Your appointment on ' . $appointment->preferred_date->format('M d, Y') . ' has been ' . $appointment->status . ' by ' . $appointment->deedWriter->name . '.',
+                    'message'         => 'Your appointment on ' . $appointment->preferred_date->format('M d, Y') . ' has been ' . $appointment->status . ' by ' . $appointment->dolilWriter->name . '.',
                 ],
             ]);
         }

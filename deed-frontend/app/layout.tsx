@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: 'DolilBD',
-  description: 'Bangladesh\'s trusted platform for finding licensed deed writers',
+  description: 'Bangladesh\'s trusted platform for finding licensed dolil writers',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

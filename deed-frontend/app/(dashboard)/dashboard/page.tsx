@@ -7,11 +7,11 @@ import { StatCard } from '@/components/ui/StatCard';
 import { IconDocument } from '@/components/ui/Icons';
 
 interface Stats {
-  deeds_total?: number;
-  deeds_created?: number;
-  deeds_assigned?: number;
-  deeds_by_status: Record<string, number>;
-  recent_deeds: {
+  dolils_total?: number;
+  dolils_created?: number;
+  dolils_assigned?: number;
+  dolils_by_status: Record<string, number>;
+  recent_dolils: {
     id: number;
     title: string;
     status: string;
@@ -54,15 +54,15 @@ export default function DashboardPage() {
 
   if (!stats) return <div className="text-gray-500">Loading...</div>;
 
-  const isAdmin = stats.deeds_total !== undefined;
-  const totalDeeds = isAdmin ? stats.deeds_total! : (stats.deeds_created! + stats.deeds_assigned!);
+  const isAdmin = stats.dolils_total !== undefined;
+  const totalDolils = isAdmin ? stats.dolils_total! : (stats.dolils_created! + stats.dolils_assigned!);
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-        <Link href="/dashboard/deeds/create" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-          + New Deed
+        <Link href="/dashboard/dolils/create" className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+          + New Dolil
         </Link>
       </div>
 
@@ -96,46 +96,46 @@ export default function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard title="Total Deeds" value={totalDeeds ?? 0} icon={<IconDocument />} color="blue" />
-        <StatCard title="Draft" value={stats.deeds_by_status?.draft ?? 0} icon={<IconDocument />} color="gray" />
-        <StatCard title="Under Review" value={stats.deeds_by_status?.under_review ?? 0} icon={<IconDocument />} color="yellow" />
-        <StatCard title="Archived" value={stats.deeds_by_status?.archived ?? 0} icon={<IconDocument />} color="green" />
+        <StatCard title="Total Dolils" value={totalDolils ?? 0} icon={<IconDocument />} color="blue" />
+        <StatCard title="Draft" value={stats.dolils_by_status?.draft ?? 0} icon={<IconDocument />} color="gray" />
+        <StatCard title="Under Review" value={stats.dolils_by_status?.under_review ?? 0} icon={<IconDocument />} color="yellow" />
+        <StatCard title="Archived" value={stats.dolils_by_status?.archived ?? 0} icon={<IconDocument />} color="green" />
       </div>
 
       {!isAdmin && (
         <div className="grid grid-cols-2 gap-4">
-          <StatCard title="Created by Me" value={stats.deeds_created ?? 0} icon={<IconDocument />} color="blue" />
-          <StatCard title="Assigned to Me" value={stats.deeds_assigned ?? 0} icon={<IconDocument />} color="purple" />
+          <StatCard title="Created by Me" value={stats.dolils_created ?? 0} icon={<IconDocument />} color="blue" />
+          <StatCard title="Assigned to Me" value={stats.dolils_assigned ?? 0} icon={<IconDocument />} color="purple" />
         </div>
       )}
 
-      {/* Recent deeds */}
+      {/* Recent dolils */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">Recent Deeds</h3>
-          <Link href="/dashboard/deeds" className="text-sm text-blue-600 hover:underline">View all</Link>
+          <h3 className="font-semibold text-gray-900">Recent Dolils</h3>
+          <Link href="/dashboard/dolils" className="text-sm text-blue-600 hover:underline">View all</Link>
         </div>
         <div className="divide-y divide-gray-100">
-          {stats.recent_deeds.length === 0 && (
-            <p className="px-6 py-8 text-center text-gray-400 text-sm">No deeds yet</p>
+          {stats.recent_dolils.length === 0 && (
+            <p className="px-6 py-8 text-center text-gray-400 text-sm">No dolils yet</p>
           )}
-          {stats.recent_deeds.map((deed) => (
-            <div key={deed.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+          {stats.recent_dolils.map((dolil) => (
+            <div key={dolil.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
               <div>
-                <Link href={`/dashboard/deeds/${deed.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
-                  {deed.title}
+                <Link href={`/dashboard/dolils/${dolil.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600">
+                  {dolil.title}
                 </Link>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {deed.created_by && `By ${deed.created_by}`}
-                  {deed.assigned_to && ` → ${deed.assigned_to}`}
+                  {dolil.created_by && `By ${dolil.created_by}`}
+                  {dolil.assigned_to && ` → ${dolil.assigned_to}`}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs px-2 py-0.5 rounded ${statusColors[deed.status] ?? 'bg-gray-100 text-gray-700'}`}>
-                  {statusLabels[deed.status] ?? deed.status}
+                <span className={`text-xs px-2 py-0.5 rounded ${statusColors[dolil.status] ?? 'bg-gray-100 text-gray-700'}`}>
+                  {statusLabels[dolil.status] ?? dolil.status}
                 </span>
                 <span className="text-xs text-gray-400">
-                  {fmtDate(deed.created_at)}
+                  {fmtDate(dolil.created_at)}
                 </span>
               </div>
             </div>

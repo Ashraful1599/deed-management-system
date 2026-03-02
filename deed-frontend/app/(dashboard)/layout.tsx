@@ -14,21 +14,21 @@ interface NavItem { href: string; label: string; icon: ReactNode; }
 interface Notification {
   id: number;
   type: string;
-  data: { message?: string; deed_id?: number; deed_title?: string };
+  data: { message?: string; dolil_id?: number; dolil_title?: string };
   read: boolean;
   created_at: string;
 }
 
 const userNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <IconDashboard /> },
-  { href: '/dashboard/deeds', label: 'Deeds', icon: <IconDocument /> },
+  { href: '/dashboard/dolils', label: 'Dolils', icon: <IconDocument /> },
   { href: '/dashboard/appointments', label: 'Appointments', icon: <IconCalendar /> },
   { href: '/dashboard/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
 
-const deedWriterNavItems: NavItem[] = [
+const dolilWriterNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <IconDashboard /> },
-  { href: '/dashboard/deeds', label: 'Deeds', icon: <IconDocument /> },
+  { href: '/dashboard/dolils', label: 'Dolils', icon: <IconDocument /> },
   { href: '/dashboard/appointments', label: 'Appointments', icon: <IconCalendar /> },
   { href: '/dashboard/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
@@ -36,14 +36,14 @@ const deedWriterNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { href: '/admin', label: 'Admin Dashboard', icon: <IconShield /> },
   { href: '/admin/users', label: 'Manage Users', icon: <IconUsers /> },
-  { href: '/admin/deeds', label: 'Manage Deeds', icon: <IconDocument /> },
+  { href: '/admin/dolils', label: 'Manage Dolils', icon: <IconDocument /> },
   { href: '/dashboard/appointments', label: 'Appointments', icon: <IconCalendar /> },
   { href: '/admin/notifications', label: 'Notifications', icon: <IconBell /> },
 ];
 
 const typeLabels: Record<string, string> = {
-  deed_assigned: 'Deed Assigned',
-  deed_created: 'Deed Created',
+  dolil_assigned: 'Dolil Assigned',
+  dolil_created: 'Dolil Created',
   status_changed: 'Status Changed',
   comment_added: 'New Comment',
   document_uploaded: 'Document Uploaded',
@@ -188,12 +188,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const visibleNav = user?.role === 'admin' ? adminNavItems
-    : user?.role === 'deed_writer' ? deedWriterNavItems
+    : user?.role === 'dolil_writer' ? dolilWriterNavItems
     : userNavItems;
   const roleLabel = user?.role?.replace(/_/g, ' ') ?? '';
   const roleBadgeColor = user?.role === 'admin'
     ? 'bg-red-100 text-red-700'
-    : user?.role === 'deed_writer'
+    : user?.role === 'dolil_writer'
     ? 'bg-purple-100 text-purple-700'
     : 'bg-gray-100 text-gray-600';
 
@@ -280,13 +280,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {typeLabels[n.type] ?? n.type}
                           </p>
                           <p className="text-sm text-gray-800 leading-snug">{n.data.message}</p>
-                          {n.data.deed_id && (
+                          {n.data.dolil_id && (
                             <Link
-                              href={`/dashboard/deeds/${n.data.deed_id}`}
+                              href={`/dashboard/dolils/${n.data.dolil_id}`}
                               onClick={() => { markRead(n.id); setNotifOpen(false); }}
                               className="text-xs text-blue-600 hover:underline mt-0.5 inline-block cursor-pointer"
                             >
-                              {n.data.deed_title ?? `Deed #${n.data.deed_id}`} →
+                              {n.data.dolil_title ?? `Dolil #${n.data.dolil_id}`} →
                             </Link>
                           )}
                           <p className="text-[11px] text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
@@ -367,7 +367,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       Edit Profile
                     </Link>
 
-                    {user.role === 'deed_writer' && (
+                    {user.role === 'dolil_writer' && (
                       <div className="px-4 py-2.5 border-t border-gray-100">
                         <p className="text-[11px] text-gray-400 uppercase tracking-wide mb-1">Professional Info</p>
                         {user.registration_number && (

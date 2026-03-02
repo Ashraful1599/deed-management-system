@@ -10,7 +10,7 @@ const sections = [
     content: [
       {
         subtitle: '1.1 Information you provide directly',
-        body: 'When you register an account, we collect your name, email address, phone number, and role (user, deed writer, or administrator). Deed writers additionally provide their registration number, office name, and geographic location (district, upazila, union). When booking an appointment as a guest, we collect your name, phone number, and optionally your email address.',
+        body: 'When you register an account, we collect your name, email address, phone number, and role (user, dolil writer, or administrator). Dolil writers additionally provide their registration number, office name, and geographic location (district, upazila, union). When booking an appointment as a guest, we collect your name, phone number, and optionally your email address.',
       },
       {
         subtitle: '1.2 Information collected automatically',
@@ -18,7 +18,7 @@ const sections = [
       },
       {
         subtitle: '1.3 Profile photos',
-        body: 'Deed writers may optionally upload a profile photo. This photo is stored on our servers and displayed publicly on their profile page.',
+        body: 'Dolil writers may optionally upload a profile photo. This photo is stored on our servers and displayed publicly on their profile page.',
       },
     ],
   },
@@ -27,7 +27,7 @@ const sections = [
     content: [
       {
         subtitle: '2.1 To provide the service',
-        body: 'We use your information to operate the platform — creating your account, displaying deed writer profiles to the public, routing appointment requests to the correct deed writer, and sending in-platform notifications when appointments are confirmed or cancelled.',
+        body: 'We use your information to operate the platform — creating your account, displaying dolil writer profiles to the public, routing appointment requests to the correct dolil writer, and sending in-platform notifications when appointments are confirmed or cancelled.',
       },
       {
         subtitle: '2.2 Communications',
@@ -44,11 +44,11 @@ const sections = [
     content: [
       {
         subtitle: '3.1 Public profile information',
-        body: 'Deed writer profile information — including name, office name, registration number, location, and review ratings — is publicly visible to anyone who visits the platform, whether or not they are logged in. Phone numbers are displayed publicly to allow clients to contact writers directly.',
+        body: 'Dolil writer profile information — including name, office name, registration number, location, and review ratings — is publicly visible to anyone who visits the platform, whether or not they are logged in. Phone numbers are displayed publicly to allow clients to contact writers directly.',
       },
       {
         subtitle: '3.2 Appointment requests',
-        body: 'When you submit an appointment request, your name, phone number, email (if provided), preferred date, and message are shared with the deed writer you are contacting. This information is necessary to fulfil the purpose of the booking.',
+        body: 'When you submit an appointment request, your name, phone number, email (if provided), preferred date, and message are shared with the dolil writer you are contacting. This information is necessary to fulfil the purpose of the booking.',
       },
       {
         subtitle: '3.3 No sale of data',

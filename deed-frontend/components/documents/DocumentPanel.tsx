@@ -16,7 +16,7 @@ interface Document {
 }
 
 interface Props {
-  deedId: number;
+  dolilId: number;
   documents: Document[];
   onChange: (docs: Document[]) => void;
   readonly?: boolean;
@@ -203,7 +203,7 @@ function GalleryModal({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export function DocumentPanel({ deedId, documents, onChange, readonly = false }: Props) {
+export function DocumentPanel({ dolilId, documents, onChange, readonly = false }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState<string[]>([]);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
@@ -227,7 +227,7 @@ export function DocumentPanel({ deedId, documents, onChange, readonly = false }:
       const formData = new FormData();
       formData.append('file', file);
       try {
-        const res = await api.post(`/deeds/${deedId}/documents`, formData, {
+        const res = await api.post(`/dolils/${dolilId}/documents`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         onChange([res.data.data, ...documents]);
@@ -238,7 +238,7 @@ export function DocumentPanel({ deedId, documents, onChange, readonly = false }:
         setUploading((prev) => prev.filter((n) => n !== file.name));
       }
     }
-  }, [deedId, documents, onChange]);
+  }, [dolilId, documents, onChange]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

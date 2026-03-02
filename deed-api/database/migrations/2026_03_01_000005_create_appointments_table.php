@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('deed_writer_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('dolil_writer_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('client_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('client_name', 100);
             $table->string('client_phone', 20);
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
 
-            $table->index(['deed_writer_id', 'status']);
+            $table->index(['dolil_writer_id', 'status']);
         });
     }
 

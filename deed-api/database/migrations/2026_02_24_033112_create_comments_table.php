@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('deed_id')->constrained('deeds')->cascadeOnDelete();
+            $table->foreignId('dolil_id')->constrained('dolils')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users');
             $table->text('body');
             $table->string('attachment_path')->nullable();
@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('attachment_mime')->nullable();
             $table->timestamps();
 
-            $table->index(['deed_id', 'created_at']);
+            $table->index(['dolil_id', 'created_at']);
         });
     }
 

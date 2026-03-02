@@ -366,7 +366,7 @@ export default function ProfilePage() {
         email: profile.email,
         phone: profile.phone,
       };
-      if (currentUser?.role === 'deed_writer') {
+      if (currentUser?.role === 'dolil_writer') {
         payload.office_name = profile.office_name;
         payload.division_id = profile.division_id;
         payload.district_id = profile.district_id;
@@ -415,7 +415,7 @@ export default function ProfilePage() {
 
   const roleBadgeColor =
     currentUser.role === 'admin' ? 'bg-red-100 text-red-700' :
-    currentUser.role === 'deed_writer' ? 'bg-purple-100 text-purple-700' :
+    currentUser.role === 'dolil_writer' ? 'bg-purple-100 text-purple-700' :
     'bg-gray-100 text-gray-600';
 
   return (
@@ -462,7 +462,7 @@ export default function ProfilePage() {
               {currentUser.status}
             </span>
           </div>
-          {currentUser.role === 'deed_writer' && currentUser.registration_number && (
+          {currentUser.role === 'dolil_writer' && currentUser.registration_number && (
             <p className="text-xs text-gray-400 mt-1">Reg: {currentUser.registration_number}</p>
           )}
         </div>
@@ -502,7 +502,7 @@ export default function ProfilePage() {
             <input type="email" value={profile.email} onChange={(e) => setP('email', e.target.value)} required className={inputCls} />
           </div>
 
-          {currentUser.role === 'deed_writer' && (
+          {currentUser.role === 'dolil_writer' && (
             <>
               <div className="pt-2 border-t border-gray-100">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Professional Details</p>

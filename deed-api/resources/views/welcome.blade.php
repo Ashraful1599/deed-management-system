@@ -247,11 +247,11 @@
 <main>
     <div class="hero">
         <h1>DolilBD REST API</h1>
-        <p>Backend API for the DolilBD deed management platform</p>
+        <p>Backend API for the DolilBD dolil management platform</p>
         <div class="meta-row">
             <div class="meta-item">🌐 <strong>Base URL</strong> http://localhost:8000/api</div>
             <div class="meta-item">🖥 <strong>Frontend</strong> http://localhost:3000</div>
-            <div class="meta-item">🗄 <strong>Database</strong> deed_db (MySQL)</div>
+            <div class="meta-item">🗄 <strong>Database</strong> dolil_db (MySQL)</div>
             <div class="meta-item">🔐 <strong>Auth</strong> Laravel Sanctum</div>
         </div>
     </div>
@@ -336,25 +336,25 @@
         </ul>
     </div>
 
-    {{-- Deed Writers & Appointments (public) --}}
-    <p class="section-title">Deed Writers &amp; Appointments</p>
+    {{-- Dolil Writers & Appointments (public) --}}
+    <p class="section-title">Dolil Writers &amp; Appointments</p>
     <div class="card">
         <ul class="route-list">
             <li class="route-item">
                 <span class="method GET">GET</span>
-                <span class="route-path">/api/deed-writers</span>
-                <span class="route-desc">List all deed writers</span>
+                <span class="route-path">/api/dolil-writers</span>
+                <span class="route-desc">List all dolil writers</span>
                 <span class="public-tag">public</span>
             </li>
             <li class="route-item">
                 <span class="method GET">GET</span>
-                <span class="route-path">/api/deed-writers/<span class="param">{user}</span></span>
-                <span class="route-desc">Deed writer profile</span>
+                <span class="route-path">/api/dolil-writers/<span class="param">{user}</span></span>
+                <span class="route-desc">Dolil writer profile</span>
                 <span class="public-tag">public</span>
             </li>
             <li class="route-item">
                 <span class="method POST">POST</span>
-                <span class="route-path">/api/deed-writers/<span class="param">{user}</span>/appointments</span>
+                <span class="route-path">/api/dolil-writers/<span class="param">{user}</span>/appointments</span>
                 <span class="route-desc">Book appointment</span>
                 <span class="public-tag">public</span>
             </li>
@@ -373,44 +373,44 @@
         </ul>
     </div>
 
-    {{-- Deeds --}}
-    <p class="section-title">Deeds</p>
+    {{-- Dolils --}}
+    <p class="section-title">Dolils</p>
     <div class="card">
         <ul class="route-list">
             <li class="route-item">
                 <span class="method GET">GET</span>
-                <span class="route-path">/api/deeds</span>
-                <span class="route-desc">List deeds</span>
+                <span class="route-path">/api/dolils</span>
+                <span class="route-desc">List dolils</span>
                 <span class="auth-tag">auth</span>
             </li>
             <li class="route-item">
                 <span class="method POST">POST</span>
-                <span class="route-path">/api/deeds</span>
-                <span class="route-desc">Create deed</span>
+                <span class="route-path">/api/dolils</span>
+                <span class="route-desc">Create dolil</span>
                 <span class="auth-tag">auth</span>
             </li>
             <li class="route-item">
                 <span class="method GET">GET</span>
-                <span class="route-path">/api/deeds/<span class="param">{deed}</span></span>
-                <span class="route-desc">Show deed</span>
+                <span class="route-path">/api/dolils/<span class="param">{dolil}</span></span>
+                <span class="route-desc">Show dolil</span>
                 <span class="auth-tag">auth</span>
             </li>
             <li class="route-item">
                 <span class="method PUT">PUT</span>
-                <span class="route-path">/api/deeds/<span class="param">{deed}</span></span>
-                <span class="route-desc">Update deed</span>
+                <span class="route-path">/api/dolils/<span class="param">{dolil}</span></span>
+                <span class="route-desc">Update dolil</span>
                 <span class="auth-tag">auth</span>
             </li>
             <li class="route-item">
                 <span class="method DELETE">DELETE</span>
-                <span class="route-path">/api/deeds/<span class="param">{deed}</span></span>
-                <span class="route-desc">Delete deed</span>
+                <span class="route-path">/api/dolils/<span class="param">{dolil}</span></span>
+                <span class="route-desc">Delete dolil</span>
                 <span class="auth-tag">auth</span>
             </li>
             <li class="route-item">
                 <span class="method GET">GET</span>
-                <span class="route-path">/api/deeds/<span class="param">{deed}</span>/activities</span>
-                <span class="route-desc">Deed activity log</span>
+                <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/activities</span>
+                <span class="route-desc">Dolil activity log</span>
                 <span class="auth-tag">auth</span>
             </li>
         </ul>
@@ -424,12 +424,12 @@
                 <ul class="route-list">
                     <li class="route-item">
                         <span class="method GET">GET</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/payments</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/payments</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
                         <span class="method POST">POST</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/payments</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/payments</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
@@ -450,12 +450,12 @@
                 <ul class="route-list">
                     <li class="route-item">
                         <span class="method GET">GET</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/reviews</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/reviews</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
                         <span class="method POST">POST</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/reviews</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/reviews</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
@@ -473,12 +473,12 @@
                 <ul class="route-list">
                     <li class="route-item">
                         <span class="method GET">GET</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/comments</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/comments</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
                         <span class="method POST">POST</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/comments</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/comments</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
@@ -499,12 +499,12 @@
                 <ul class="route-list">
                     <li class="route-item">
                         <span class="method GET">GET</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/documents</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/documents</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
                         <span class="method POST">POST</span>
-                        <span class="route-path">/api/deeds/<span class="param">{deed}</span>/documents</span>
+                        <span class="route-path">/api/dolils/<span class="param">{dolil}</span>/documents</span>
                         <span class="auth-tag">auth</span>
                     </li>
                     <li class="route-item">
@@ -648,8 +648,8 @@
                     </li>
                     <li class="route-item">
                         <span class="method GET">GET</span>
-                        <span class="route-path">/api/admin/deeds</span>
-                        <span class="route-desc">All deeds</span>
+                        <span class="route-path">/api/admin/dolils</span>
+                        <span class="route-desc">All dolils</span>
                         <span class="admin-tag">admin</span>
                     </li>
                 </ul>

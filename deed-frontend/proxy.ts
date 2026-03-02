@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const protectedPaths = ['/dashboard', '/deeds', '/notifications', '/admin', '/profile'];
+const protectedPaths = ['/dashboard', '/dolils', '/notifications', '/admin', '/profile'];
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get('deed_token')?.value;
+  const token = request.cookies.get('dolil_token')?.value;
   const { pathname } = request.nextUrl;
 
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
@@ -21,5 +21,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/deeds/:path*', '/notifications/:path*', '/admin/:path*', '/profile/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*', '/dolils/:path*', '/notifications/:path*', '/admin/:path*', '/profile/:path*', '/login', '/register'],
 };

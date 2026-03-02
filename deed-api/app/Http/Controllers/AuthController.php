@@ -7,8 +7,11 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Referral;
 use App\Models\User;
+use App\Models\PasswordResetOtp;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -58,7 +61,7 @@ class AuthController extends Controller
         // Send verification email
         $user->sendEmailVerificationNotification();
 
-        $token = $user->createToken('deed-app')->plainTextToken;
+        $token = $user->createToken('dolil-app')->plainTextToken;
 
         return response()->json([
             'user'              => new UserResource($user),
@@ -88,14 +91,17 @@ class AuthController extends Controller
 
         // Allow login if either email or phone is verified
         if (!$user->hasVerifiedEmail() && !$user->phone_verified_at) {
+            $verifyToken = $user->createToken('verify-only')->plainTextToken;
             return response()->json([
                 'message'        => 'Please verify your email address or phone number before logging in.',
                 'email_verified' => false,
                 'email'          => $user->email,
+                'phone'          => $user->phone,
+                'verify_token'   => $verifyToken,
             ], 403);
         }
 
-        $token = $user->createToken('deed-app')->plainTextToken;
+        $token = $user->createToken('dolil-app')->plainTextToken;
 
         return response()->json([
             'user'  => new UserResource($user),
@@ -194,6 +200,132 @@ class AuthController extends Controller
 
         $request->user()->update($data);
         return new UserResource($request->user()->fresh()->load(['divisionRel', 'districtRel', 'upazila']));
+    }
+
+    public function lookupAccount(Request $request)
+    {
+        $request->validate(['identifier' => 'required|string']);
+
+        $identifier = $request->identifier;
+        $field = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user  = User::where($field, $identifier)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'No account found with that email or phone.'], 404);
+        }
+
+        return response()->json([
+            'email' => $user->email,
+            'phone' => $user->phone,
+        ]);
+    }
+
+    public function sendResetOtp(Request $request)
+    {
+        $request->validate([
+            'identifier' => 'required|string',
+            'method'     => 'required|in:email,phone',
+        ]);
+
+        $field   = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user    = User::where($field, $request->identifier)->first();
+        $contact = $user?->{$request->method};
+
+        if (!$user || !$contact) {
+            return response()->json(['message' => 'Account or contact method not found.'], 404);
+        }
+
+        // Invalidate previous OTPs for this contact
+        PasswordResetOtp::where('identifier', $contact)
+            ->whereNull('verified_at')
+            ->update(['expires_at' => now()]);
+
+        $otp  = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        $hash = hash('sha256', $otp);
+
+        PasswordResetOtp::create([
+            'identifier' => $contact,
+            'code'       => $hash,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        if ($request->method === 'phone') {
+            app(SmsService::class)->send($contact, "Your DolilBD password reset OTP is {$otp}. Valid for 15 minutes.");
+        } else {
+            Mail::raw(
+                "Your DolilBD password reset OTP is: {$otp}\n\nThis OTP is valid for 15 minutes.\n\nIf you did not request this, please ignore this email.",
+                fn($msg) => $msg->to($contact)->subject('DolilBD Password Reset OTP')
+            );
+        }
+
+        return response()->json(['message' => 'OTP sent successfully.']);
+    }
+
+    public function verifyResetOtp(Request $request)
+    {
+        $request->validate([
+            'identifier' => 'required|string',
+            'method'     => 'required|in:email,phone',
+            'otp'        => 'required|string|size:4',
+        ]);
+
+        $field   = filter_var($request->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user    = User::where($field, $request->identifier)->first();
+        $contact = $user?->{$request->method};
+
+        if (!$user || !$contact) {
+            return response()->json(['message' => 'Invalid or expired OTP.'], 422);
+        }
+
+        $record = PasswordResetOtp::where('identifier', $contact)
+            ->whereNull('verified_at')
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
+
+        if (!$record || !hash_equals($record->code, hash('sha256', $request->otp))) {
+            return response()->json(['message' => 'Invalid or expired OTP.'], 422);
+        }
+
+        $resetToken = Str::random(64);
+
+        $record->update([
+            'verified_at' => now(),
+            'reset_token' => hash('sha256', $resetToken),
+        ]);
+
+        return response()->json(['reset_token' => $resetToken]);
+    }
+
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'reset_token' => 'required|string',
+            'password'    => 'required|min:8|confirmed',
+        ]);
+
+        $record = PasswordResetOtp::whereNotNull('verified_at')
+            ->where('reset_token', hash('sha256', $request->reset_token))
+            ->where('verified_at', '>', now()->subMinutes(30))
+            ->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Invalid or expired reset token.'], 422);
+        }
+
+        $field = filter_var($record->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user  = User::where($field, $record->identifier)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 422);
+        }
+
+        $user->forceFill(['password' => Hash::make($request->password)])->save();
+        $user->tokens()->delete();
+        $record->delete();
+
+        return response()->json(['message' => 'Password reset successfully.']);
     }
 
     public function creditReferrer(User $user): void

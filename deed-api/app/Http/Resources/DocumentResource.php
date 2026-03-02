@@ -6,7 +6,7 @@ class DocumentResource extends JsonResource {
     public function toArray(Request $request): array {
         return [
             'id'                => $this->id,
-            'deed_id'           => $this->deed_id,
+            'dolil_id'          => $this->dolil_id,
             'original_filename' => $this->original_filename,
             'file_size'         => $this->file_size,
             'mime_type'         => $this->mime_type,

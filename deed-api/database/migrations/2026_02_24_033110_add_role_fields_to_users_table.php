@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('phone')->nullable()->unique()->after('email');
-            $table->enum('role', ['user', 'deed_writer', 'admin'])->default('user')->after('phone');
+            $table->enum('role', ['user', 'dolil_writer', 'admin'])->default('user')->after('phone');
             $table->enum('status', ['active', 'pending', 'suspended'])->default('active')->after('role');
-            // Deed Writer professional fields
+            // Dolil Writer professional fields
             $table->string('registration_number')->nullable()->after('status');
             $table->string('office_name')->nullable()->after('registration_number');
             $table->string('district')->nullable()->after('office_name');

@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('deed_party', function (Blueprint $table) {
+        Schema::create('dolil_party', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('deed_id')->constrained('deeds')->cascadeOnDelete();
+            $table->foreignId('dolil_id')->constrained('dolils')->cascadeOnDelete();
             $table->foreignId('party_id')->constrained('parties')->cascadeOnDelete();
             $table->enum('role', ['grantor', 'grantee']);
             $table->tinyInteger('sort_order')->default(0);
 
-            $table->unique(['deed_id', 'party_id', 'role']);
+            $table->unique(['dolil_id', 'party_id', 'role']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('deed_party');
+        Schema::dropIfExists('dolil_party');
     }
 };

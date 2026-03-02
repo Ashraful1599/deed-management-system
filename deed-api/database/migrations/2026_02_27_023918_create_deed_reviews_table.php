@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('deed_reviews', function (Blueprint $table) {
+        Schema::create('dolil_reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('deed_id')->constrained('deeds')->cascadeOnDelete();
+            $table->foreignId('dolil_id')->constrained('dolils')->cascadeOnDelete();
             $table->foreignId('reviewer_id')->constrained('users');
             $table->tinyInteger('rating');
             $table->text('body')->nullable();
             $table->timestamps();
-            $table->unique(['deed_id', 'reviewer_id']);
-            $table->index('deed_id');
+            $table->unique(['dolil_id', 'reviewer_id']);
+            $table->index('dolil_id');
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('deed_reviews');
+        Schema::dropIfExists('dolil_reviews');
     }
 };

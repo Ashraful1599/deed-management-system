@@ -5,7 +5,7 @@ import PublicFooter from '@/components/PublicFooter';
 const values = [
   {
     title: 'Verified Professionals',
-    desc: 'Every deed writer on our platform is licensed and registered with the relevant authorities. We verify credentials before listing.',
+    desc: 'Every dolil writer on our platform is licensed and registered with the relevant authorities. We verify credentials before listing.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -14,7 +14,7 @@ const values = [
   },
   {
     title: 'Nationwide Coverage',
-    desc: 'We serve all 64 districts of Bangladesh. No matter where you are, you can find a qualified deed writer near you.',
+    desc: 'We serve all 64 districts of Bangladesh. No matter where you are, you can find a qualified dolil writer near you.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -54,9 +54,9 @@ export default function AboutPage() {
             About DolilBD
           </h1>
           <p className="text-gray-500 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-            DolilBD is Bangladesh&apos;s first online directory for licensed deed writers,
+            DolilBD is Bangladesh&apos;s first online directory for licensed dolil writers,
             making it easy for citizens to find and book verified legal professionals
-            for property deeds and legal documents.
+            for property dolils and legal documents.
           </p>
         </div>
       </section>
@@ -68,13 +68,13 @@ export default function AboutPage() {
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Property transactions in Bangladesh require licensed deed writers — yet finding a
+                Property transactions in Bangladesh require licensed dolil writers — yet finding a
                 trustworthy one has always been difficult. People rely on word of mouth,
                 travel long distances, and often don&apos;t know if the professional they hire is
                 properly registered.
               </p>
               <p className="text-gray-600 leading-relaxed mb-6">
-                DolilBD changes that. We built a central platform where all licensed deed
+                DolilBD changes that. We built a central platform where all licensed dolil
                 writers can list their profile, and where citizens can search, compare, read reviews,
                 and book appointments — from anywhere, at any time.
               </p>
@@ -82,7 +82,7 @@ export default function AboutPage() {
                 href="/#directory"
                 className="inline-flex items-center gap-2 bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors"
               >
-                Browse Deed Writers
+                Browse Dolil Writers
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -133,7 +133,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Ready to get started?</h2>
           <p className="text-blue-200 mb-8 max-w-xl mx-auto">
-            Find a deed writer near you or register your own profile today.
+            Find a dolil writer near you or register your own profile today.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/#directory"

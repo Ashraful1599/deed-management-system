@@ -14,9 +14,9 @@ class Party extends Model
         'city', 'state', 'zip_code', 'notes',
     ];
 
-    public function deeds()
+    public function dolils()
     {
-        return $this->belongsToMany(Deed::class, 'deed_party')
+        return $this->belongsToMany(Dolil::class, 'dolil_party')
             ->withPivot('role', 'sort_order');
     }
 

@@ -15,7 +15,7 @@ interface Appointment {
   message: string | null;
   status: AppointmentStatus;
   created_at: string;
-  deed_writer: { id: number; name: string } | null;
+  dolil_writer: { id: number; name: string } | null;
   client: { id: number; name: string } | null;
 }
 
@@ -103,14 +103,14 @@ export default function AppointmentsPage() {
     }
   }
 
-  const canManage = user?.role === 'admin' || user?.role === 'deed_writer';
+  const canManage = user?.role === 'admin' || user?.role === 'dolil_writer';
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
         <p className="text-sm text-gray-500 mt-1">
-          {user?.role === 'admin' ? 'All appointment requests across deed writers' : 'Incoming appointment requests from clients'}
+          {user?.role === 'admin' ? 'All appointment requests across dolil writers' : 'Incoming appointment requests from clients'}
         </p>
       </div>
 
@@ -178,9 +178,9 @@ export default function AppointmentsPage() {
                       <span className="font-medium text-gray-700">Date: </span>{formatDate(appt.preferred_date)}
                     </span>
                   </div>
-                  {user?.role === 'admin' && appt.deed_writer && (
+                  {user?.role === 'admin' && appt.dolil_writer && (
                     <p className="text-xs text-gray-400">
-                      Writer: <span className="text-gray-600 font-medium">{appt.deed_writer.name}</span>
+                      Writer: <span className="text-gray-600 font-medium">{appt.dolil_writer.name}</span>
                     </p>
                   )}
                   {appt.message && (

@@ -24,7 +24,7 @@ function notify() {
 
 export async function initPublicAuth(): Promise<void> {
   if (_checked) { notify(); return; }
-  const token = typeof window !== 'undefined' ? localStorage.getItem('deed_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('dolil_token') : null;
   if (!token) {
     _checked = true;
     notify();

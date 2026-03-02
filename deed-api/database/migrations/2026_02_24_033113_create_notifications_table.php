@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('type'); // deed_created, deed_assigned, status_changed, comment_added, document_uploaded
-            $table->json('data');   // { deed_id, deed_title, actor_name, message }
+            $table->string('type'); // dolil_created, dolil_assigned, status_changed, comment_added, document_uploaded
+            $table->json('data');   // { dolil_id, dolil_title, actor_name, message }
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
 

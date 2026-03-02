@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Drop old deed-related tables that are no longer needed
+        // Drop old dolil-related tables that are no longer needed
         Schema::dropIfExists('documents');
-        Schema::dropIfExists('deed_party');
-        Schema::dropIfExists('deeds');
+        Schema::dropIfExists('dolil_party');
+        Schema::dropIfExists('dolils');
         Schema::dropIfExists('parties');
         Schema::dropIfExists('properties');
 
-        // New deeds table
-        Schema::create('deeds', function (Blueprint $table) {
+        // New dolils table
+        Schema::create('dolils', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
@@ -32,10 +32,10 @@ return new class extends Migration
             $table->index('status');
         });
 
-        // Documents linked to new deeds
+        // Documents linked to new dolils
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('deed_id')->constrained('deeds')->cascadeOnDelete();
+            $table->foreignId('dolil_id')->constrained('dolils')->cascadeOnDelete();
             $table->foreignId('uploaded_by')->constrained('users');
             $table->string('original_filename');
             $table->string('stored_filename');
@@ -50,6 +50,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('documents');
-        Schema::dropIfExists('deeds');
+        Schema::dropIfExists('dolils');
     }
 };

@@ -16,7 +16,7 @@ class PropertyResource extends JsonResource {
             'acreage'           => $this->acreage,
             'notes'             => $this->notes,
             'created_by'        => $this->created_by,
-            'deeds_count'       => $this->whenCounted('deeds'),
+            'dolils_count'      => $this->whenCounted('dolils'),
             'created_at'        => $this->created_at,
             'updated_at'        => $this->updated_at,
         ];

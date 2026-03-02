@@ -30,7 +30,7 @@ export default function PublicFooter() {
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo darkBg className="mb-3" />
             <p className="text-sm text-gray-400 leading-relaxed">
-              Bangladesh&apos;s trusted platform for finding licensed deed writers. Connect with verified professionals across all 64 districts.
+              Bangladesh&apos;s trusted platform for finding licensed dolil writers. Connect with verified professionals across all 64 districts.
             </p>
           </div>
 

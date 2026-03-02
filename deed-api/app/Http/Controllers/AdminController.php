@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers;
-use App\Http\Resources\DeedResource;
+use App\Http\Resources\DolilResource;
 use App\Http\Resources\UserResource;
-use App\Models\Deed;
+use App\Models\Dolil;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -21,14 +21,14 @@ class AdminController extends Controller {
     public function updateUser(Request $request, User $user) {
         $data = $request->validate([
             'status' => ['sometimes', 'in:active,pending,suspended'],
-            'role'   => ['sometimes', 'in:user,deed_writer,admin'],
+            'role'   => ['sometimes', 'in:user,dolil_writer,admin'],
         ]);
         $user->update($data);
         return new UserResource($user->fresh());
     }
 
-    public function deeds(Request $request) {
-        $query = Deed::with(['creator', 'assignee'])->withCount(['comments', 'documents']);
+    public function dolils(Request $request) {
+        $query = Dolil::with(['creator', 'assignee'])->withCount(['comments', 'documents']);
         if ($request->filled('status'))    { $query->where('status', $request->status); }
         if ($request->filled('date_from')) { $query->whereDate('created_at', '>=', $request->date_from); }
         if ($request->filled('date_to'))   { $query->whereDate('created_at', '<=', $request->date_to); }
@@ -41,7 +41,7 @@ class AdminController extends Controller {
                   ->orWhereHas('assignee', fn($u) => $u->where('name', 'like', $term)->orWhere('email', 'like', $term));
             });
         }
-        return DeedResource::collection($query->orderByDesc('created_at')->paginate(50));
+        return DolilResource::collection($query->orderByDesc('created_at')->paginate(50));
     }
 
     public function stats() {
@@ -51,10 +51,10 @@ class AdminController extends Controller {
             'users_by_status'     => User::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
             'users_new_today'     => User::whereDate('created_at', today())->count(),
             'users_new_this_week' => User::where('created_at', '>=', now()->startOfWeek())->count(),
-            'deeds_total'         => Deed::count(),
-            'deeds_by_status'     => Deed::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
-            'deeds_new_today'     => Deed::whereDate('created_at', today())->count(),
-            'deeds_new_this_week' => Deed::where('created_at', '>=', now()->startOfWeek())->count(),
+            'dolils_total'        => Dolil::count(),
+            'dolils_by_status'    => Dolil::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status'),
+            'dolils_new_today'    => Dolil::whereDate('created_at', today())->count(),
+            'dolils_new_this_week' => Dolil::where('created_at', '>=', now()->startOfWeek())->count(),
             'recent_users'        => User::orderByDesc('created_at')->limit(6)->get()->map(fn($u) => [
                 'id'         => $u->id,
                 'name'       => $u->name,
@@ -63,7 +63,7 @@ class AdminController extends Controller {
                 'status'     => $u->status,
                 'created_at' => $u->created_at,
             ]),
-            'recent_deeds'        => Deed::with(['creator', 'assignee'])->orderByDesc('created_at')->limit(6)->get()->map(fn($d) => [
+            'recent_dolils'       => Dolil::with(['creator', 'assignee'])->orderByDesc('created_at')->limit(6)->get()->map(fn($d) => [
                 'id'          => $d->id,
                 'title'       => $d->title,
                 'status'      => $d->status,

@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('deed_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('dolil_token') : null;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -26,8 +26,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('deed_token');
-        Cookies.remove('deed_token');
+        localStorage.removeItem('dolil_token');
+        Cookies.remove('dolil_token');
         window.location.href = '/login';
       }
     }

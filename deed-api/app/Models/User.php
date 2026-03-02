@@ -63,21 +63,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(BdUnion::class, 'union_id');
     }
 
-    // Reviews received (as deed writer) — through deeds assigned to this user
+    // Reviews received (as dolil writer) — through dolils assigned to this user
     public function receivedReviews()
     {
-        return $this->hasManyThrough(DeedReview::class, Deed::class, 'assigned_to', 'deed_id');
+        return $this->hasManyThrough(DolilReview::class, Dolil::class, 'assigned_to', 'dolil_id');
     }
 
     // Relationships
-    public function deedsCreated()
+    public function dolilsCreated()
     {
-        return $this->hasMany(Deed::class, 'created_by');
+        return $this->hasMany(Dolil::class, 'created_by');
     }
 
-    public function deedsAssigned()
+    public function dolilsAssigned()
     {
-        return $this->hasMany(Deed::class, 'assigned_to');
+        return $this->hasMany(Dolil::class, 'assigned_to');
     }
 
     public function comments()
@@ -107,9 +107,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'admin';
     }
 
-    public function isDeedWriter(): bool
+    public function isDolilWriter(): bool
     {
-        return $this->role === 'deed_writer';
+        return $this->role === 'dolil_writer';
     }
 
     public function isActive(): bool

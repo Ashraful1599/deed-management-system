@@ -10,7 +10,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'By accessing or using the DolilBD platform ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service. These Terms apply to all visitors, registered users, and deed writers who access the platform.',
+        body: 'By accessing or using the DolilBD platform ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service. These Terms apply to all visitors, registered users, and dolil writers who access the platform.',
       },
     ],
   },
@@ -19,11 +19,11 @@ const sections = [
     content: [
       {
         subtitle: '',
-        body: 'DolilBD is an online directory and appointment booking platform that connects members of the public with licensed deed writers in Bangladesh. The platform allows deed writers to create public profiles and allows clients to search for writers, view profiles, read reviews, and submit appointment requests.',
+        body: 'DolilBD is an online directory and appointment booking platform that connects members of the public with licensed dolil writers in Bangladesh. The platform allows dolil writers to create public profiles and allows clients to search for writers, view profiles, read reviews, and submit appointment requests.',
       },
       {
         subtitle: '',
-        body: 'DolilBD is a facilitating platform only. We are not a law firm, we do not provide legal advice, and we are not a party to any agreement between a client and a deed writer. All legal services are provided solely by the deed writer.',
+        body: 'DolilBD is a facilitating platform only. We are not a law firm, we do not provide legal advice, and we are not a party to any agreement between a client and a dolil writer. All legal services are provided solely by the dolil writer.',
       },
     ],
   },
@@ -49,19 +49,19 @@ const sections = [
     ],
   },
   {
-    title: '4. Deed Writer Listings',
+    title: '4. Dolil Writer Listings',
     content: [
       {
         subtitle: '4.1 Eligibility',
-        body: 'Only individuals who hold a valid deed writer licence issued by the competent authority in Bangladesh may register as a deed writer on this platform. By registering as a deed writer, you represent and warrant that you hold a valid, current licence and that all information in your profile is accurate.',
+        body: 'Only individuals who hold a valid dolil writer licence issued by the competent authority in Bangladesh may register as a dolil writer on this platform. By registering as a dolil writer, you represent and warrant that you hold a valid, current licence and that all information in your profile is accurate.',
       },
       {
         subtitle: '4.2 Profile accuracy',
-        body: 'Deed writers are solely responsible for the accuracy and completeness of their profile information, including their registration number, office name, location, and contact details. DolilBD may verify this information but is not obligated to do so.',
+        body: 'Dolil writers are solely responsible for the accuracy and completeness of their profile information, including their registration number, office name, location, and contact details. DolilBD may verify this information but is not obligated to do so.',
       },
       {
         subtitle: '4.3 Profile removal',
-        body: 'We reserve the right to remove or suspend any deed writer profile that contains false or misleading information, that has received substantiated complaints, or whose licence has expired or been revoked.',
+        body: 'We reserve the right to remove or suspend any dolil writer profile that contains false or misleading information, that has received substantiated complaints, or whose licence has expired or been revoked.',
       },
     ],
   },
@@ -70,19 +70,19 @@ const sections = [
     content: [
       {
         subtitle: '5.1 Nature of bookings',
-        body: 'Submitting an appointment request through the platform is a request only — it does not constitute a confirmed appointment or a binding contract. An appointment is only confirmed when the deed writer explicitly confirms it through the platform.',
+        body: 'Submitting an appointment request through the platform is a request only — it does not constitute a confirmed appointment or a binding contract. An appointment is only confirmed when the dolil writer explicitly confirms it through the platform.',
       },
       {
         subtitle: '5.2 Client responsibilities',
         body: 'When submitting an appointment request, you must provide accurate contact information. Submitting false information or booking appointments with no intention of attending is prohibited and may result in your account being suspended.',
       },
       {
-        subtitle: '5.3 Deed writer responsibilities',
-        body: 'Deed writers who confirm an appointment are expected to honour it. Repeated unexplained cancellations or no-shows may result in profile suspension.',
+        subtitle: '5.3 Dolil writer responsibilities',
+        body: 'Dolil writers who confirm an appointment are expected to honour it. Repeated unexplained cancellations or no-shows may result in profile suspension.',
       },
       {
         subtitle: '5.4 Disputes',
-        body: 'Any disputes arising from a service engagement between a client and a deed writer are between those two parties. DolilBD is not responsible for the quality, outcome, or legality of any services provided by a deed writer.',
+        body: 'Any disputes arising from a service engagement between a client and a dolil writer are between those two parties. DolilBD is not responsible for the quality, outcome, or legality of any services provided by a dolil writer.',
       },
     ],
   },
@@ -91,11 +91,11 @@ const sections = [
     content: [
       {
         subtitle: '6.1 Honest reviews',
-        body: 'Users may submit reviews and ratings for deed writers they have engaged with. Reviews must be honest, based on genuine experience, and must not contain false statements, defamatory content, or personal attacks.',
+        body: 'Users may submit reviews and ratings for dolil writers they have engaged with. Reviews must be honest, based on genuine experience, and must not contain false statements, defamatory content, or personal attacks.',
       },
       {
         subtitle: '6.2 Prohibited review conduct',
-        body: 'The following are prohibited: submitting fake or incentivised reviews, submitting reviews for deed writers you have not engaged with, and attempting to manipulate a deed writer\'s rating through coordinated positive or negative reviews.',
+        body: 'The following are prohibited: submitting fake or incentivised reviews, submitting reviews for dolil writers you have not engaged with, and attempting to manipulate a dolil writer\'s rating through coordinated positive or negative reviews.',
       },
       {
         subtitle: '6.3 Review removal',
@@ -138,7 +138,7 @@ const sections = [
       },
       {
         subtitle: '9.3 Third-party conduct',
-        body: 'DolilBD is not responsible for the conduct, services, or advice of any deed writer listed on the platform. We do not endorse any specific deed writer.',
+        body: 'DolilBD is not responsible for the conduct, services, or advice of any dolil writer listed on the platform. We do not endorse any specific dolil writer.',
       },
     ],
   },

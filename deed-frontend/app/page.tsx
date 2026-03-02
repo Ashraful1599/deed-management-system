@@ -10,7 +10,7 @@ interface Division { id: number; name: string; bn_name: string; }
 interface District { id: number; division_id: number; division: string; name: string; bn_name: string; }
 interface Upazila  { id: number; district_id: number; name: string; bn_name: string; }
 
-interface DeedWriter {
+interface DolilWriter {
   id: number;
   name: string;
   office_name: string | null;
@@ -24,7 +24,7 @@ interface DeedWriter {
 }
 
 interface PaginatedResponse {
-  data: DeedWriter[];
+  data: DolilWriter[];
   meta: { current_page: number; last_page: number; total: number; };
 }
 
@@ -158,7 +158,7 @@ const steps = [
   {
     step: '01',
     title: 'Search by Location',
-    desc: 'Use our filters to find deed writers in your district, upazila, or union. Search by name or office.',
+    desc: 'Use our filters to find dolil writers in your district, upazila, or union. Search by name or office.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -197,7 +197,7 @@ export default function HomePage() {
   const [upazilaId,  setUpazilaId]  = useState('');
   const [search, setSearch]         = useState('');
 
-  const [writers,  setWriters]  = useState<DeedWriter[]>([]);
+  const [writers,  setWriters]  = useState<DolilWriter[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [page,     setPage]     = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -240,7 +240,7 @@ export default function HomePage() {
     if (districtId) params.set('district_id', districtId);
     if (upazilaId)  params.set('upazila_id', upazilaId);
     if (search)     params.set('search', search);
-    fetch(`${API}/deed-writers?${params}`)
+    fetch(`${API}/dolil-writers?${params}`)
       .then((r) => r.json())
       .then((res: PaginatedResponse) => {
         setWriters(res.data);
@@ -282,7 +282,7 @@ export default function HomePage() {
           // Reverse geocode via OpenStreetMap Nominatim (free, no key)
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`,
-            { headers: { 'User-Agent': 'DeedManager/1.0' } }
+            { headers: { 'User-Agent': 'DolilManager/1.0' } }
           );
           const geo = await res.json();
 
@@ -379,10 +379,10 @@ export default function HomePage() {
               Bangladesh&apos;s Legal Document Platform
             </span>
             <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight mb-5">
-              Find a Licensed<br className="hidden sm:block" /> Deed Writer Near You
+              Find a Licensed<br className="hidden sm:block" /> Dolil Writer Near You
             </h1>
             <p className="text-blue-100 text-base sm:text-lg leading-relaxed mb-8 max-w-xl">
-              Connect with verified deed writers across all 64 districts of Bangladesh.
+              Connect with verified dolil writers across all 64 districts of Bangladesh.
               View credentials, read real reviews, and book an appointment — all in one place.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -393,7 +393,7 @@ export default function HomePage() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Find a Deed Writer
+                Find a Dolil Writer
               </a>
               <a
                 href="#how-it-works"
@@ -423,37 +423,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section id="how-it-works" className="py-14 sm:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">How It Works</h2>
-            <p className="text-gray-500 mt-2 max-w-xl mx-auto">
-              Getting help from a licensed deed writer has never been easier. Three simple steps.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-            {steps.map((s) => (
-              <div key={s.step} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-600 mb-4">
-                  {s.icon}
-                </div>
-                <p className="text-xs font-bold text-blue-400 tracking-widest mb-2">STEP {s.step}</p>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">{s.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Directory ── */}
       <section id="directory" className="py-12 sm:py-16 bg-white flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Find a Deed Writer</h2>
-              <p className="text-gray-500 mt-1">Browse licensed deed writers across Bangladesh by location</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Find a Dolil Writer</h2>
+              <p className="text-gray-500 mt-1">Browse licensed dolil writers across Bangladesh by location</p>
             </div>
             <button
               onClick={detectLocation}
@@ -560,7 +536,7 @@ export default function HomePage() {
           </div>
 
           {!loading && total > 0 && (
-            <p className="text-sm text-gray-500 mb-4">{total} deed writer{total !== 1 ? 's' : ''} found</p>
+            <p className="text-sm text-gray-500 mb-4">{total} dolil writer{total !== 1 ? 's' : ''} found</p>
           )}
 
           {loading && (
@@ -574,7 +550,7 @@ export default function HomePage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <p className="text-gray-500 font-medium">No deed writers found</p>
+              <p className="text-gray-500 font-medium">No dolil writers found</p>
               <p className="text-sm text-gray-400 mt-1">Try adjusting your filters or search term</p>
             </div>
           )}
@@ -582,7 +558,7 @@ export default function HomePage() {
           {!loading && writers.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {writers.map((w) => (
-                <Link key={w.id} href={`/deed-writers/${w.id}`}
+                <Link key={w.id} href={`/dolil-writers/${w.id}`}
                   className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group">
                   <div className="flex items-start gap-3">
                     <WriterAvatar name={w.name} src={w.avatar} />
@@ -636,11 +612,35 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Bottom CTA for deed writers ── */}
+      {/* ── How It Works ── */}
+      <section id="how-it-works" className="py-14 sm:py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">How It Works</h2>
+            <p className="text-gray-500 mt-2 max-w-xl mx-auto">
+              Getting help from a licensed dolil writer has never been easier. Three simple steps.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+            {steps.map((s) => (
+              <div key={s.step} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-600 mb-4">
+                  {s.icon}
+                </div>
+                <p className="text-xs font-bold text-blue-400 tracking-widest mb-2">STEP {s.step}</p>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">{s.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Bottom CTA for dolil writers ── */}
       <section className="bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">Are you a licensed deed writer?</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Are you a licensed dolil writer?</h2>
             <p className="text-blue-200 text-sm sm:text-base">
               Create a free profile and start receiving appointment requests from clients across Bangladesh.
             </p>

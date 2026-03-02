@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Document extends Model
 {
     protected $fillable = [
-        'deed_id', 'uploaded_by', 'original_filename',
+        'dolil_id', 'uploaded_by', 'original_filename',
         'stored_filename', 'disk_path', 'file_size', 'mime_type', 'label',
     ];
 
-    public function deed()
+    public function dolil()
     {
-        return $this->belongsTo(Deed::class);
+        return $this->belongsTo(Dolil::class);
     }
 
     public function uploader()

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Appointment extends Model
 {
     protected $fillable = [
-        'deed_writer_id',
+        'dolil_writer_id',
         'client_id',
         'client_name',
         'client_phone',
@@ -21,9 +21,9 @@ class Appointment extends Model
         'preferred_date' => 'date',
     ];
 
-    public function deedWriter()
+    public function dolilWriter()
     {
-        return $this->belongsTo(User::class, 'deed_writer_id');
+        return $this->belongsTo(User::class, 'dolil_writer_id');
     }
 
     public function client()

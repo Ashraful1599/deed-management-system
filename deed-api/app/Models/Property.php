@@ -19,9 +19,9 @@ class Property extends Model
         'acreage' => 'decimal:4',
     ];
 
-    public function deeds()
+    public function dolils()
     {
-        return $this->hasMany(Deed::class);
+        return $this->hasMany(Dolil::class);
     }
 
     public function creator()
