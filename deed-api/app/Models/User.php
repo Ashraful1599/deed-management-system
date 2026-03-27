@@ -17,6 +17,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'role', 'status',
         'registration_number', 'office_name', 'district', 'avatar',
         'district_id', 'upazila_id', 'union_id', 'division_id',
+        'address_type', 'bd_union_id', 'bd_municipality_id',
+        'bd_city_corporation_id', 'bd_post_office_id', 'bd_ward',
         'phone_verified_at', 'referral_code', 'credits', 'referred_by',
     ];
 

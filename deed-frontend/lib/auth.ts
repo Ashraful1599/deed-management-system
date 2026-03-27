@@ -17,6 +17,12 @@ export interface User {
   division_name: string | null;
   district_name: string | null;
   upazila_name: string | null;
+  address_type: string | null;
+  bd_union_id: string | null;
+  bd_municipality_id: string | null;
+  bd_city_corporation_id: string | null;
+  bd_post_office_id: string | null;
+  bd_ward: string | null;
   avatar: string | null;
   phone_verified_at: string | null;
   created_at: string;

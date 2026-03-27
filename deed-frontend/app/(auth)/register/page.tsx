@@ -1,13 +1,13 @@
 'use client';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import Select from 'react-select';
 import { register, resendVerificationEmail } from '@/lib/auth';
 import { toast } from 'react-toastify';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
-// Valid BD mobile: 01[3-9]XXXXXXXX (11 digits)
 function validateBdPhone(local: string): string {
   if (!local) return 'Phone number is required.';
   if (!/^\d+$/.test(local)) return 'Only digits are allowed.';
@@ -16,9 +16,51 @@ function validateBdPhone(local: string): string {
   return '';
 }
 
-interface Division { id: number; name: string; }
-interface District { id: number; division_id: number; name: string; }
-interface Upazila  { id: number; district_id: number; name: string; }
+type AddressTypeValue = 'Union' | 'Municipality' | 'City Corporation';
+type SelectOption = { value: string; label: string };
+
+interface BdDivision { id: string; name_bn: string; name_en: string; }
+interface BdDistrict { id: string; name_bn: string; name_en: string; division_id: string; }
+interface BdThana { id: string; name_bn: string; name_en: string; district_id: string; }
+interface BdUnion { id: string; name_bn: string; name_en: string; thana_id: string; }
+interface BdPostOffice { id: string; name_bn: string; name_en: string; code: string; district_id: string; }
+interface BdMunicipality { id: string; name_bn: string; name_en: string; district_id: string; }
+interface BdCityCorporation { id: string; name_bn: string; name_en: string; district_id: string; }
+interface BdWard { value: string; label_bn: string; label_en: string; }
+
+interface BdAddressData {
+  divisions: BdDivision[];
+  districts: BdDistrict[];
+  thanas: BdThana[];
+  unions: BdUnion[];
+  postOffices: BdPostOffice[];
+  municipalities: BdMunicipality[];
+  cityCorporations: BdCityCorporation[];
+  wards: BdWard[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rsStyles: any = {
+  control: (base: any, state: any) => ({
+    ...base,
+    borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+    borderRadius: '0.375rem',
+    fontSize: '0.875rem',
+    minHeight: '38px',
+    boxShadow: state.isFocused ? '0 0 0 2px rgba(59,130,246,0.3)' : 'none',
+    '&:hover': { borderColor: state.isFocused ? '#3b82f6' : '#d1d5db' },
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    fontSize: '0.875rem',
+    backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+    color: state.isSelected ? 'white' : '#111827',
+    cursor: 'pointer',
+  }),
+  placeholder: (base: any) => ({ ...base, color: '#9ca3af', fontSize: '0.875rem' }),
+  menu: (base: any) => ({ ...base, zIndex: 50 }),
+  singleValue: (base: any) => ({ ...base, fontSize: '0.875rem' }),
+};
 
 function RegisterForm() {
   const searchParams = useSearchParams();
@@ -40,56 +82,117 @@ function RegisterForm() {
     role: 'user' as 'user' | 'dolil_writer',
     registration_number: '',
     office_name: '',
-    division_id: null as number | null,
-    district_id: null as number | null,
-    upazila_id: null as number | null,
+    address_type: 'Union' as AddressTypeValue,
+    bd_division_id: null as string | null,
+    bd_district_id: null as string | null,
+    bd_thana_id: null as string | null,
+    bd_union_id: null as string | null,
+    bd_municipality_id: null as string | null,
+    bd_city_corporation_id: null as string | null,
+    bd_post_office_id: null as string | null,
+    bd_ward: null as string | null,
   });
 
   const [phoneError, setPhoneError] = useState('');
-
-  // Phone OTP state
   const [otp, setOtp] = useState('');
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
-
-  // Location data
-  const [divisions, setDivisions] = useState<Division[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [upazilas, setUpazilas] = useState<Upazila[]>([]);
-
+  const [addressData, setAddressData] = useState<BdAddressData | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch divisions when dolil_writer role selected
+  // Load address JSON when dolil_writer is selected
   useEffect(() => {
-    if (form.role !== 'dolil_writer' || divisions.length > 0) return;
-    fetch(`${API}/locations/divisions`)
-      .then((r) => r.json())
-      .then(setDivisions)
+    if (form.role !== 'dolil_writer' || addressData) return;
+    fetch('/bangladesh_address_data.json')
+      .then(r => r.json())
+      .then(setAddressData)
       .catch(() => {});
-  }, [form.role]);
+  }, [form.role, addressData]);
 
-  // Fetch districts when division changes
-  useEffect(() => {
-    setDistricts([]);
-    setUpazilas([]);
-    setForm((prev) => ({ ...prev, district_id: null, upazila_id: null }));
-    if (!form.division_id) return;
-    fetch(`${API}/locations/divisions/${form.division_id}/districts`)
-      .then((r) => r.json())
-      .then(setDistricts)
-      .catch(() => {});
-  }, [form.division_id]);
+  // Memoized option lists
+  const divisionOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.divisions ?? []).map(d => ({ value: d.id, label: `${d.name_bn} (${d.name_en})` })),
+    [addressData]);
 
-  // Fetch upazilas when district changes
-  useEffect(() => {
-    setUpazilas([]);
-    setForm((prev) => ({ ...prev, upazila_id: null }));
-    if (!form.district_id) return;
-    fetch(`${API}/locations/districts/${form.district_id}/upazilas`)
-      .then((r) => r.json())
-      .then(setUpazilas)
-      .catch(() => {});
-  }, [form.district_id]);
+  const districtOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.districts ?? [])
+      .filter(d => d.division_id === form.bd_division_id)
+      .map(d => ({ value: d.id, label: `${d.name_bn} (${d.name_en})` })),
+    [addressData, form.bd_division_id]);
+
+  const thanaOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.thanas ?? [])
+      .filter(t => t.district_id === form.bd_district_id)
+      .map(t => ({ value: t.id, label: `${t.name_bn} (${t.name_en})` })),
+    [addressData, form.bd_district_id]);
+
+  const unionOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.unions ?? [])
+      .filter(u => u.thana_id === form.bd_thana_id)
+      .map(u => ({ value: u.id, label: `${u.name_bn} (${u.name_en})` })),
+    [addressData, form.bd_thana_id]);
+
+  const postOfficeOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.postOffices ?? [])
+      .filter(p => p.district_id === form.bd_district_id)
+      .map(p => ({ value: p.id, label: `${p.name_bn} (${p.code}) ${p.name_en} (${p.code})` })),
+    [addressData, form.bd_district_id]);
+
+  const municipalityOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.municipalities ?? [])
+      .filter(m => m.district_id === form.bd_district_id)
+      .map(m => ({ value: m.id, label: `${m.name_bn} (${m.name_en})` })),
+    [addressData, form.bd_district_id]);
+
+  const cityCorporationOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.cityCorporations ?? [])
+      .filter(c => c.district_id === form.bd_district_id)
+      .map(c => ({ value: c.id, label: `${c.name_bn} (${c.name_en})` })),
+    [addressData, form.bd_district_id]);
+
+  const wardOptions = useMemo<SelectOption[]>(() =>
+    (addressData?.wards ?? []).map(w => ({ value: w.value, label: `${w.label_bn} (${w.label_en})` })),
+    [addressData]);
+
+  // Helper to find a SelectOption by value
+  function findOpt(opts: SelectOption[], val: string | null): SelectOption | null {
+    return opts.find(o => o.value === val) ?? null;
+  }
+
+  // Cascade reset handlers
+  function onAddressTypeChange(opt: SelectOption | null) {
+    setForm(prev => ({
+      ...prev,
+      address_type: (opt?.value as AddressTypeValue) ?? 'Union',
+      bd_district_id: null, bd_thana_id: null,
+      bd_union_id: null, bd_municipality_id: null,
+      bd_city_corporation_id: null, bd_post_office_id: null, bd_ward: null,
+    }));
+  }
+
+  function onDivisionChange(opt: SelectOption | null) {
+    setForm(prev => ({
+      ...prev,
+      bd_division_id: opt?.value ?? null,
+      bd_district_id: null, bd_thana_id: null,
+      bd_union_id: null, bd_municipality_id: null,
+      bd_city_corporation_id: null, bd_post_office_id: null,
+    }));
+  }
+
+  function onDistrictChange(opt: SelectOption | null) {
+    setForm(prev => ({
+      ...prev,
+      bd_district_id: opt?.value ?? null,
+      bd_thana_id: null, bd_union_id: null,
+      bd_municipality_id: null, bd_city_corporation_id: null,
+      bd_post_office_id: null,
+    }));
+  }
+
+  function onThanaChange(opt: SelectOption | null) {
+    setForm(prev => ({ ...prev, bd_thana_id: opt?.value ?? null, bd_union_id: null }));
+  }
 
   function set(field: string, value: string | number | null) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -99,8 +202,7 @@ function RegisterForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     setAvatarFile(file);
-    const url = URL.createObjectURL(file);
-    setAvatarPreview(url);
+    setAvatarPreview(URL.createObjectURL(file));
   }
 
   async function sendOtp(tok: string) {
@@ -133,9 +235,18 @@ function RegisterForm() {
       if (form.role === 'dolil_writer') {
         payload.registration_number = form.registration_number;
         payload.office_name = form.office_name;
-        payload.division_id = form.division_id;
-        payload.district_id = form.district_id;
-        payload.upazila_id = form.upazila_id;
+        // New cascading address fields
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const p = payload as any;
+        p.address_type = form.address_type;
+        p.bd_division_id = form.bd_division_id;
+        p.bd_district_id = form.bd_district_id;
+        p.bd_thana_id = form.bd_thana_id;
+        p.bd_union_id = form.bd_union_id;
+        p.bd_municipality_id = form.bd_municipality_id;
+        p.bd_city_corporation_id = form.bd_city_corporation_id;
+        p.bd_post_office_id = form.bd_post_office_id;
+        p.bd_ward = form.bd_ward;
       }
       const { token: tok } = await register(payload);
       setToken(tok);
@@ -197,9 +308,8 @@ function RegisterForm() {
   }
 
   const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
-  const selectCls = 'w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
 
-  // Phone verified — can sign in directly
+  // Phone verified step
   if (step === 'phone-verified') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -230,7 +340,7 @@ function RegisterForm() {
     );
   }
 
-  // Phone OTP verification step
+  // Phone OTP step
   if (step === 'phone-otp') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -335,6 +445,33 @@ function RegisterForm() {
         </div>
       </div>
     );
+  }
+
+  // Address type-specific row 3 field label & options
+  const addressTypeOptions: SelectOption[] = [
+    { value: 'Union', label: 'ইউনিয়ন (Union)' },
+    { value: 'Municipality', label: 'পৌরসভা (Municipality)' },
+    { value: 'City Corporation', label: 'সিটি কর্পোরেশন (City Corporation)' },
+  ];
+
+  const thanaLabel = form.address_type === 'City Corporation' ? 'থানা / উপজেলা *' : 'থানা / উপজেলা *';
+
+  let specificLabel = 'ইউনিয়ন *';
+  let specificOptions: SelectOption[] = unionOptions;
+  let specificValue: SelectOption | null = findOpt(unionOptions, form.bd_union_id);
+  function onSpecificChange(opt: SelectOption | null) {
+    if (form.address_type === 'Union') set('bd_union_id', opt?.value ?? null);
+    else if (form.address_type === 'Municipality') set('bd_municipality_id', opt?.value ?? null);
+    else set('bd_city_corporation_id', opt?.value ?? null);
+  }
+  if (form.address_type === 'Municipality') {
+    specificLabel = 'পৌরসভা *';
+    specificOptions = municipalityOptions;
+    specificValue = findOpt(municipalityOptions, form.bd_municipality_id);
+  } else if (form.address_type === 'City Corporation') {
+    specificLabel = 'সিটি কর্পোরেশন *';
+    specificOptions = cityCorporationOptions;
+    specificValue = findOpt(cityCorporationOptions, form.bd_city_corporation_id);
   }
 
   return (
@@ -474,47 +611,110 @@ function RegisterForm() {
                 <input type="text" value={form.office_name} onChange={(e) => set('office_name', e.target.value)} required className={inputCls} placeholder="e.g. Dhaka Legal Services" />
               </div>
 
-              <p className="text-sm font-medium text-blue-800 pt-1">Location</p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Division</label>
-                <select
-                  value={form.division_id ?? ''}
-                  onChange={(e) => set('division_id', e.target.value ? Number(e.target.value) : null)}
-                  className={selectCls}
-                >
-                  <option value="">Select Division</option>
-                  {divisions.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
+              <p className="text-sm font-medium text-blue-800 pt-1">ঠিকানা (Address)</p>
+
+              {/* Row 1: ঠিকানার ধরন | বিভাগ */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">ঠিকানার ধরন *</label>
+                  <Select
+                    options={addressTypeOptions}
+                    value={findOpt(addressTypeOptions, form.address_type)}
+                    onChange={onAddressTypeChange}
+                    styles={rsStyles}
+                    placeholder="ধরন নির্বাচন করুন"
+                    isSearchable={false}
+                    instanceId="address-type"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">বিভাগ *</label>
+                  <Select
+                    options={divisionOptions}
+                    value={findOpt(divisionOptions, form.bd_division_id)}
+                    onChange={onDivisionChange}
+                    styles={rsStyles}
+                    placeholder="বিভাগ নির্বাচন করুন"
+                    isLoading={!addressData && form.role === 'dolil_writer'}
+                    instanceId="bd-division"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
-                <select
-                  value={form.district_id ?? ''}
-                  onChange={(e) => set('district_id', e.target.value ? Number(e.target.value) : null)}
-                  disabled={!form.division_id || districts.length === 0}
-                  className={`${selectCls} disabled:bg-gray-100 disabled:text-gray-400`}
-                >
-                  <option value="">{form.division_id && districts.length === 0 ? 'Loading...' : 'Select District'}</option>
-                  {districts.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
+
+              {/* Row 2: জেলা | থানা/উপজেলা */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">জেলা *</label>
+                  <Select
+                    options={districtOptions}
+                    value={findOpt(districtOptions, form.bd_district_id)}
+                    onChange={onDistrictChange}
+                    styles={rsStyles}
+                    placeholder="জেলা নির্বাচন করুন"
+                    isDisabled={!form.bd_division_id}
+                    instanceId="bd-district"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{thanaLabel}</label>
+                  <Select
+                    options={thanaOptions}
+                    value={findOpt(thanaOptions, form.bd_thana_id)}
+                    onChange={onThanaChange}
+                    styles={rsStyles}
+                    placeholder="থানা নির্বাচন করুন"
+                    isDisabled={!form.bd_district_id}
+                    instanceId="bd-thana"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana</label>
-                <select
-                  value={form.upazila_id ?? ''}
-                  onChange={(e) => set('upazila_id', e.target.value ? Number(e.target.value) : null)}
-                  disabled={!form.district_id || upazilas.length === 0}
-                  className={`${selectCls} disabled:bg-gray-100 disabled:text-gray-400`}
-                >
-                  <option value="">{form.district_id && upazilas.length === 0 ? 'Loading...' : 'Select Upazila'}</option>
-                  {upazilas.map((u) => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
+
+              {/* Row 3: ইউনিয়ন/পৌরসভা/সিটি কর্পোরেশন | ডাকঘর */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{specificLabel}</label>
+                  <Select
+                    options={specificOptions}
+                    value={specificValue}
+                    onChange={onSpecificChange}
+                    styles={rsStyles}
+                    placeholder="নির্বাচন করুন"
+                    isDisabled={
+                      form.address_type === 'Union'
+                        ? !form.bd_thana_id
+                        : !form.bd_district_id
+                    }
+                    instanceId="bd-specific"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">ডাকঘর *</label>
+                  <Select
+                    options={postOfficeOptions}
+                    value={findOpt(postOfficeOptions, form.bd_post_office_id)}
+                    onChange={(opt) => set('bd_post_office_id', opt?.value ?? null)}
+                    styles={rsStyles}
+                    placeholder="ডাকঘর নির্বাচন করুন"
+                    isDisabled={!form.bd_district_id}
+                    instanceId="bd-post-office"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: ওয়ার্ড নং */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">ওয়ার্ড নং *</label>
+                  <Select
+                    options={wardOptions}
+                    value={findOpt(wardOptions, form.bd_ward)}
+                    onChange={(opt) => set('bd_ward', opt?.value ?? null)}
+                    styles={rsStyles}
+                    placeholder="ওয়ার্ড নির্বাচন করুন"
+                    isDisabled={!addressData}
+                    instanceId="bd-ward"
+                  />
+                </div>
               </div>
             </div>
           )}

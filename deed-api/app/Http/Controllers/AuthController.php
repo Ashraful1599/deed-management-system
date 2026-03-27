@@ -36,11 +36,17 @@ class AuthController extends Controller
             'status'              => 'active',
             'registration_number' => $data['registration_number'] ?? null,
             'office_name'         => $data['office_name'] ?? null,
-            'district'            => $data['district'] ?? null,
-            'division_id'         => $data['division_id'] ?? null,
-            'district_id'         => $data['district_id'] ?? null,
-            'upazila_id'          => $data['upazila_id'] ?? null,
-            'referred_by'         => $referrer?->id,
+            'district'               => $data['district'] ?? null,
+            'division_id'            => $data['division_id'] ?? null,
+            'district_id'            => $data['district_id'] ?? null,
+            'upazila_id'             => $data['upazila_id'] ?? null,
+            'address_type'           => $data['address_type'] ?? null,
+            'bd_union_id'            => $data['bd_union_id'] ?? null,
+            'bd_municipality_id'     => $data['bd_municipality_id'] ?? null,
+            'bd_city_corporation_id' => $data['bd_city_corporation_id'] ?? null,
+            'bd_post_office_id'      => $data['bd_post_office_id'] ?? null,
+            'bd_ward'                => $data['bd_ward'] ?? null,
+            'referred_by'            => $referrer?->id,
             'credits'             => 20, // signup bonus
         ]);
 
@@ -177,16 +183,22 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $data = $request->validate([
-            'name'         => ['sometimes', 'string', 'max:255'],
-            'phone'        => ['sometimes', 'string', 'unique:users,phone,' . $request->user()->id],
-            'email'        => ['sometimes', 'email', 'unique:users,email,' . $request->user()->id],
-            'password'     => ['sometimes', 'string', 'min:8'],
-            'office_name'  => ['nullable', 'string'],
-            'district'     => ['nullable', 'string'],
-            'division_id'  => ['nullable', 'integer', 'exists:bd_divisions,id'],
-            'district_id'  => ['nullable', 'integer', 'exists:bd_districts,id'],
-            'upazila_id'   => ['nullable', 'integer', 'exists:bd_upazilas,id'],
-            'avatar'       => ['nullable', 'string'],
+            'name'                   => ['sometimes', 'string', 'max:255'],
+            'phone'                  => ['sometimes', 'string', 'unique:users,phone,' . $request->user()->id],
+            'email'                  => ['sometimes', 'email', 'unique:users,email,' . $request->user()->id],
+            'password'               => ['sometimes', 'string', 'min:8'],
+            'office_name'            => ['nullable', 'string'],
+            'district'               => ['nullable', 'string'],
+            'division_id'            => ['nullable', 'integer', 'exists:bd_divisions,id'],
+            'district_id'            => ['nullable', 'integer', 'exists:bd_districts,id'],
+            'upazila_id'             => ['nullable', 'integer', 'exists:bd_upazilas,id'],
+            'address_type'           => ['nullable', 'string', 'in:Union,Municipality,City Corporation'],
+            'bd_union_id'            => ['nullable', 'string'],
+            'bd_municipality_id'     => ['nullable', 'string'],
+            'bd_city_corporation_id' => ['nullable', 'string'],
+            'bd_post_office_id'      => ['nullable', 'string'],
+            'bd_ward'                => ['nullable', 'string'],
+            'avatar'                 => ['nullable', 'string'],
         ]);
 
         if (isset($data['password'])) {
