@@ -1,6 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Read how DolilBD collects, uses, and protects your personal information.',
+  openGraph: {
+    title: 'Privacy Policy | DolilBD',
+    url: 'https://dolilbd.com/privacy',
+  },
+};
 
 const LAST_UPDATED = 'March 1, 2026';
 

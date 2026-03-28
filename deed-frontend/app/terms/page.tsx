@@ -1,6 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Terms and conditions for using the DolilBD platform.',
+  openGraph: {
+    title: 'Terms of Service | DolilBD',
+    url: 'https://dolilbd.com/terms',
+  },
+};
 
 const LAST_UPDATED = 'March 1, 2026';
 

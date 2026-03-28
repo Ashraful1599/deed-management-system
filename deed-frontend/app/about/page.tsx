@@ -1,6 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
+
+export const metadata: Metadata = {
+  title: 'About DolilBD',
+  description: "DolilBD is Bangladesh's first online directory for licensed dolil writers, making it easy for citizens to find and book verified legal professionals.",
+  openGraph: {
+    title: 'About DolilBD',
+    description: "Bangladesh's first online directory for licensed dolil writers.",
+    url: 'https://dolilbd.com/about',
+  },
+};
 
 const values = [
   {
