@@ -60,8 +60,8 @@ export default function PublicHeader({ backHref }: { backHref?: string }) {
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   function isActive(href: string) {
-    if (href === '/') return pathname === '/';
-    if (href.includes('#')) return pathname === '/';
+    if (href === '/') return pathname === '/' || pathname === '';
+    if (href.includes('#')) return pathname === '/' || pathname === '';
     return pathname.startsWith(href);
   }
 
