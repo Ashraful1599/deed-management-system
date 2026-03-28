@@ -180,7 +180,7 @@ export default async function HomePage() {
             Join DolilBD and reach thousands of clients looking for verified dolil writers in their area.
           </p>
           <Link href="/register"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
+            className="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-8 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-sm">
             Register as Dolil Writer
           </Link>
         </div>
