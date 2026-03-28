@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import Select from 'react-select';
 import { register, resendVerificationEmail } from '@/lib/auth';
 import { toast } from 'react-toastify';
+import PublicHeader from '@/components/PublicHeader';
+import PublicFooter from '@/components/PublicFooter';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -312,14 +314,7 @@ function RegisterForm() {
   // Phone verified step
   if (step === 'phone-verified') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <Link href="/" className="inline-block">
-            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
-            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
-          </Link>
-        </div>
+      <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow p-8 w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -335,7 +330,6 @@ function RegisterForm() {
             Sign In
           </Link>
         </div>
-        </div>
       </div>
     );
   }
@@ -343,14 +337,7 @@ function RegisterForm() {
   // Phone OTP step
   if (step === 'phone-otp') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <Link href="/" className="inline-block">
-            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
-            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
-          </Link>
-        </div>
+      <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow p-8 w-full text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -403,7 +390,6 @@ function RegisterForm() {
             Skip for now →
           </button>
         </div>
-        </div>
       </div>
     );
   }
@@ -411,14 +397,7 @@ function RegisterForm() {
   // Email check step
   if (step === 'email-check') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <Link href="/" className="inline-block">
-            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
-            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
-          </Link>
-        </div>
+      <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow p-8 w-full text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -441,7 +420,6 @@ function RegisterForm() {
           <Link href="/login" className="block text-sm text-blue-600 hover:underline">
             Back to Sign In
           </Link>
-        </div>
         </div>
       </div>
     );
@@ -475,14 +453,7 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
-        <div className="text-center mb-6">
-          <Link href="/" className="inline-block">
-            <h1 className="text-2xl font-bold text-gray-900">Dolil<span className="text-blue-600">BD</span></h1>
-            <p className="text-xs text-gray-500 mt-0.5">Legal Document System</p>
-          </Link>
-        </div>
+    <div className="w-full max-w-lg">
       <div className="bg-white rounded-lg shadow p-8 w-full">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Account</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -732,15 +703,20 @@ function RegisterForm() {
           <Link href="/login" className="text-blue-600 hover:underline">Sign In</Link>
         </p>
       </div>
-      </div>
     </div>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <Suspense>
-      <RegisterForm />
-    </Suspense>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <PublicHeader />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Suspense>
+          <RegisterForm />
+        </Suspense>
+      </div>
+      <PublicFooter />
+    </div>
   );
 }
